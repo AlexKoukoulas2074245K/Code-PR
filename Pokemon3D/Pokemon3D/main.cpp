@@ -1,10 +1,14 @@
-#include "common.h"
+#include "vld.h"
+#include "gsqueue.h"
+#include "renderer.h"
 
 LRESULT CALLBACK WndProc(
 	HWND hwnd,
 	UINT message,
 	WPARAM wparam,
 	LPARAM lparam);
+
+int Shutdown(const int exitCode);
 
 int CALLBACK WinMain(
 	HINSTANCE hInstance,
@@ -45,7 +49,8 @@ int CALLBACK WinMain(
 	}
 	else
 	{
-		//TODO handle multiple resolutions
+		wndPos.a = (GetSystemMetrics(SM_CXSCREEN) - window::WIDTH) / 2;
+		wndPos.b = (GetSystemMetrics(SM_CYSCREEN) - window::HEIGHT) / 2;
 	}
 
 	/* Window creation */
@@ -67,9 +72,14 @@ int CALLBACK WinMain(
 	ShowWindow(hWindow, SW_SHOW);
 	ShowCursor(false);
 
+	Renderer r;
+	if (!r.Initialize(hWindow)) return Shutdown(EXIT_FAILURE);
 	/* Game Loop */
 	bool running = true;
 	MSG message;
+	GSQueue qstates;
+	if (!qstates.Initialize()) return Shutdown(EXIT_FAILURE);
+
 	while (running)
 	{
 		if (PeekMessage(&message, NULL, 0, 0, PM_REMOVE))
@@ -78,19 +88,31 @@ int CALLBACK WinMain(
 			DispatchMessage(&message);
 
 			if (message.message == WM_QUIT) running = false;
-			else;//TODO input here
+			else qstates.HandleInput();
 		}
 		else
 		{
-			
+			qstates.Update();
+			if (qstates.isEmpty()) running = false;
+			else
+			{
+				qstates.Render();
+				r.ClearFrame();
+			}
 		}
 	}
 
-	/* Shutdown */
-	ShowCursor(true);
-	return 0;
+	return Shutdown(EXIT_SUCCESS);
 }
 
+/* Shutdown */
+int Shutdown(const int exitCode)
+{
+	ShowCursor(false);
+	return exitCode;
+}
+
+/* Custom window proc */
 LRESULT CALLBACK WndProc(
 	HWND hwnd,
 	UINT message,
