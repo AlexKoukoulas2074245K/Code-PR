@@ -12,11 +12,13 @@ bool GSQueue::Initialize(const HWND& hWindow)
 	/* Initialize the renderer */
 	if (!mRenderer.Initialize(hWindow)) return false;
 	
-	IOManager iom;
-	iom.LoadMultipleBodies("C:/users/alex/pictures/projects/pkmnrevo/models/*");
 	/* Add and initialize game states */
 	mStates.push_back(value_t(new GSPlay));
 	
+	IOManager iom;
+	iom.LoadMultipleBodies("C:/users/alex/Pictures/projects/pkmnrevo/models/*");
+	iom.LoadMultipleBmps("C:/Users/alex/Pictures/*");
+
 	for (cnst_iter iter = mStates.begin();
 		 iter != mStates.end();
 		 ++iter)

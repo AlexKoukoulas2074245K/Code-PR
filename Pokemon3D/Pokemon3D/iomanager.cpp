@@ -2,16 +2,21 @@
 #include "common.h"
 #include "ioutils.h"
 
-IOManager::IOManager(){}
+IOManager::IOManager()
+{
+	mSuppFormats[Format::BMP] = "bmp";
+	mSuppFormats[Format::OBJ] = "obj"; 
+}
 IOManager::~IOManager(){}
 
 /* Attempt to assign to the out parameter the entry value for the given id 
 from the preloaded bodies */
 void IOManager::GetBody(const str& id, Body& outBody)
 {
-	if (mPreLoaded.count(id))
+	if (mPrelBodies.count(id))
 	{
-		outBody = mPreLoaded[id];
+		outBody = mPrelBodies[id];
+		outBody.setLoaded(true);
 		return;
 	}
 	outBody.setLoaded(false);
@@ -28,16 +33,66 @@ void IOManager::ForceGetBody(const str& id, Body& outBody)
 /* Loads a body in the preloaded mmap */
 void IOManager::LoadBody(const str& path)
 {
-	if (mPreLoaded.count(path)) return;
+	if (mPrelBodies.count(path) ||
+		!ValidPath(path, Format::OBJ)) return;
 
 	Body resultBody;
 	if (LoadOBJFromFile(path.c_str(), resultBody))
 	{
-		mPreLoaded[path] = resultBody;
+		mPrelBodies[path] = resultBody;
 	}
 }
  
-/* Loads a variable number of obj files from the paths supplied */
+/* Loads all obj files from the directory given */
+void IOManager::LoadMultipleBodies(const str& directory)
+{
+	str_list paths;
+	GetAllFilenames(directory, paths);
+	for (str_list_iter iter = paths.begin();
+		iter != paths.end();
+		++iter) LoadBody(*iter);
+}
+
+void IOManager::GetBmp(const str& id, Bitmap& outBmp)
+{
+	if (mPrelBitmaps.count(id))
+	{
+		outBmp = mPrelBitmaps[id];
+		outBmp.setLoaded(true);
+		return;
+	}
+	outBmp.setLoaded(false);
+	LOGLN(("Bmp does not exist: " + id).c_str());
+}
+
+void IOManager::ForceGetBmp(const str& id, Bitmap& outBmp)
+{
+	LoadBmp(id);
+	GetBmp(id, outBmp);
+}
+
+void IOManager::LoadBmp(const str& path)
+{
+	if (mPrelBitmaps.count(path) ||
+		!ValidPath(path, Format::BMP)) return;
+
+	Bitmap resultBmp;
+	if (LoadBMPFromFile(path.c_str(), resultBmp))
+	{
+		mPrelBitmaps[path] = resultBmp;
+	}
+}
+
+void IOManager::LoadMultipleBmps(const str& directory)
+{
+	str_list paths;
+	GetAllFilenames(directory, paths);
+	for (str_list_iter iter = paths.begin();
+		iter != paths.end();
+		++iter) LoadBmp(*iter);
+}
+
+/* Returns the number of filenames from the directory supplied */
 void IOManager::GetAllFilenames(const str& directory, str_list& outFilenames)
 {
 	str dirWithoutPostfix(directory.begin(), directory.end() - 1);
@@ -54,14 +109,17 @@ void IOManager::GetAllFilenames(const str& directory, str_list& outFilenames)
 	}
 }
 
-/* Loads all obj files from the directory given */
-void IOManager::LoadMultipleBodies(const str& directory)
+bool IOManager::ValidPath(const str& path, const Format frmt)
 {
-	str_list paths;
-	GetAllFilenames(directory, paths);
-	for (str_list_iter iter = paths.begin();
-		iter != paths.end();
-		++iter) LoadBody(*iter);
+	str format = mSuppFormats[frmt];
+	str_sizet pathSize = path.size();
+	if (pathSize <= 3 ||
+		path[pathSize - 3] != format[0] ||
+		path[pathSize - 2] != format[1] ||
+		path[pathSize - 1] != format[2])
+	{
+		LOGLN("Sanity check failed for: " + path + " against: " + format);
+		return false;
+	}
+	return true;
 }
-
-

@@ -14,9 +14,7 @@ bool LoadOBJFromFile(const char * const filename, Body& result)
 
 	if (!file.is_open())
 	{
-		LOGLN("Could not open: ");
-		LOG(filename);
-		LOGLN("");
+		LOGLN(("File does not exist: " + std::string(filename)).c_str());
 		return false;
 	}
 
@@ -135,6 +133,59 @@ bool LoadOBJFromFile(const char * const filename, Body& result)
 	result.setVertices(resultVertices);
 	result.setIndices(resultIndices);
 	result.setDimensions(resultDimensions);
+
+	return true;
+}
+
+bool LoadBMPFromFile(const char* const filename, Bitmap& outBmp)
+{
+	FILE* f;
+	fopen_s(&f, filename, "rb");
+
+	if (f == NULL)
+	{
+		LOGLN(("File does not exist: " + std::string(filename)).c_str());
+		return false;
+	}
+	
+	unsigned char info[54];
+	fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
+
+	Bitmap::rgb_dat resultData;
+	Bitmap::rgb_dims resultDims;
+
+	// extract image height and width from header
+	resultDims.width = *(int*) &info[18];
+	resultDims.height = *(int*) &info[22];
+	int row_padded = (resultDims.width * 3 + 3) & (~3);
+	
+	unsigned char* data = new unsigned char[row_padded];
+	unsigned char tmp;
+
+	
+	for (int i = 0; i < resultDims.height; i++)
+	{
+		fread(data, sizeof(unsigned char), row_padded, f);
+		for (int j = 0; j < resultDims.width * 3; j += 3)
+		{
+			// Convert (B, G, R) to (R, G, B)
+			tmp = data[j];
+			data[j] = data[j + 2];
+			data[j + 2] = tmp;
+
+			Bitmap::RGBTrip rgb;
+			rgb.r = (int) data[j];
+			rgb.g = (int) data[j + 1];
+			rgb.b = (int) data[j + 2];
+			resultData.push_back(rgb);
+		}
+	}
+
+	outBmp.FillData(resultData);
+	outBmp.FillDimensions(resultDims);
+
+	delete[] data;
+	fclose(f);
 
 	return true;
 }
