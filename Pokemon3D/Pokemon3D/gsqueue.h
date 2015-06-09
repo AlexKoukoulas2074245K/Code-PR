@@ -3,6 +3,7 @@
 #include <list>
 #include "a_gamestate.h"
 #include "gsplay.h"
+#include "iomanager.h"
 
 class GSQueue
 {
@@ -16,7 +17,7 @@ public:
 	/* Standard gamestate methods and queue accessors */
 	GSQueue();	
 	~GSQueue();
-	bool Initialize();
+	bool Initialize(const HWND& hWindow);
 	void HandleInput();
 	void Update();
 	void Render();
@@ -25,4 +26,5 @@ public:
 private:
 	bool mEmpty;
 	gs_list mStates;
+	Renderer mRenderer;
 };

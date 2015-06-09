@@ -21,8 +21,8 @@ typedef HRESULT hres;
 /* Build Dependent */
 #ifdef _DEBUG
 inline void LOG(const char* const out){ OutputDebugString(out); }
-inline void LOGLN(const char* const out){ LOG(out); LOG("\n"); }
-inline void LOGLN(const std::string& out){ LOG(out.c_str()); LOG("\n"); }
+inline void LOGLN(const char* const out){ OutputDebugString(">>> "); LOG(out); LOG("\n"); }
+inline void LOGLN(const std::string& out){ OutputDebugString(">>> "); LOG(out.c_str()); LOG("\n"); }
 inline void LOGLN(const double out){ LOGLN(std::to_string(out)); }
 inline void LOGLN(const float out){ LOGLN(std::to_string(out)); }
 inline void LOGLN(const uint out){ LOGLN(std::to_string(out)); }
@@ -52,18 +52,6 @@ inline void LOGLN(const ulong out){}
 #define HR(x) (x)
 #endif
 #endif
- 
-
-/* Finals */
-namespace window
-{
-	static const bool FULLSCREEN = true;
-	static const bool VSYNC = true;
-	static const char* const APP_NAME = "Pokemon3D";
-	static const ulong WIDTH = GetSystemMetrics(SM_CXSCREEN);
-	static const ulong HEIGHT = GetSystemMetrics(SM_CYSCREEN);
-	static const ulong PEL_BIT = 32;
-}
 
 namespace d3d
 {

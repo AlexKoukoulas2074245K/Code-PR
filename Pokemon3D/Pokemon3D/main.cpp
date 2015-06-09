@@ -1,6 +1,8 @@
 #include "vld.h"
 #include "gsqueue.h"
 #include "renderer.h"
+#include "window.h"
+#include <fstream>
 
 LRESULT CALLBACK WndProc(
 	HWND hwnd,
@@ -72,43 +74,36 @@ int CALLBACK WinMain(
 	ShowWindow(hWindow, SW_SHOW);
 	ShowCursor(false);
 
-	Renderer r;
-	if (!r.Initialize(hWindow)) return Shutdown(EXIT_FAILURE);
-	/* Game Loop */
-	bool running = true;
-	MSG message;
+	/* Component initialization */
 	GSQueue qstates;
-	if (!qstates.Initialize()) return Shutdown(EXIT_FAILURE);
+	if (!qstates.Initialize(hWindow)) return Shutdown(EXIT_FAILURE);
 
-	while (running)
+	/* Game Loop */
+	MSG message;
+	while (1)
 	{
 		if (PeekMessage(&message, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&message);
 			DispatchMessage(&message);
 
-			if (message.message == WM_QUIT) running = false;
-			else qstates.HandleInput();
+			if (message.message == WM_QUIT) break;
+			qstates.HandleInput();
 		}
 		else
 		{
 			qstates.Update();
-			if (qstates.isEmpty()) running = false;
-			else
-			{
-				qstates.Render();
-				r.ClearFrame();
-			}
+			if (qstates.isEmpty()) break;
+			qstates.Render();
 		}
 	}
 
 	return Shutdown(EXIT_SUCCESS);
 }
 
-/* Shutdown */
 int Shutdown(const int exitCode)
 {
-	ShowCursor(false);
+	ShowCursor(true);
 	return exitCode;
 }
 
@@ -134,7 +129,7 @@ LRESULT CALLBACK WndProc(
 				PostQuitMessage(0);
 				return 0;
 			}
-		}break;
+		} break;
 	}
 
 	return DefWindowProc(hwnd, message, wparam, lparam);

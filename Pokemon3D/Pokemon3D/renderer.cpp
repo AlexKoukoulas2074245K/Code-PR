@@ -18,7 +18,7 @@ void Renderer::ClearFrame()
 	mDevcon->ClearDepthStencilView(mDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
-bool Renderer::PreInitialization(const HWND hWindow, uint& outrrNum, uint& outrrDen)
+bool Renderer::PreInitialization(const HWND& hWindow, uint& outrrNum, uint& outrrDen)
 {
 	/* DXGI factory creation */
 	comptr<IDXGIFactory> factory;
@@ -71,7 +71,7 @@ bool Renderer::PreInitialization(const HWND hWindow, uint& outrrNum, uint& outrr
 	return true;
 }
 
-bool Renderer::CoreInitialization(const HWND hWindow, const uint rrNum, const uint rrDen)
+bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const uint rrDen)
 {
 	/* Swap chain description */
 	DXGI_SWAP_CHAIN_DESC scd = {};

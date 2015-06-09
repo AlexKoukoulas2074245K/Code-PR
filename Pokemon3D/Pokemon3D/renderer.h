@@ -1,11 +1,11 @@
 #pragma once
-#include "common.h"
 #include <d3d11.h>
 #include <d3dx11.h>
 #include <d3dcommon.h>
 #include <d3dx10.h>
 #include <dxerr.h>
-#include <vector>
+#include "common.h"
+#include "window.h"
 
 /* D3D library linking */
 #pragma comment (lib, "dxgi.lib")
@@ -24,8 +24,8 @@ public:
 	void ClearFrame();
 
 private:
-	bool PreInitialization(const HWND hWindow, uint& outrrNum, uint& outrrDen);
-	bool CoreInitialization(const HWND hWindow, const uint rrNum, const uint rrDen);
+	bool PreInitialization(const HWND& hWindow, uint& outrrNum, uint& outrrDen);
+	bool CoreInitialization(const HWND& hWindow, const uint rrNum, const uint rrDen);
 
 private:
 	comptr<ID3D11Device> mDevice;
