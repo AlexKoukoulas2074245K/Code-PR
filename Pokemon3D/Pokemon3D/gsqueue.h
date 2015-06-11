@@ -4,7 +4,7 @@
 #include "a_gamestate.h"
 #include "gsplay.h"
 #include "iomanager.h"
-
+#include "camera.h"
 
 class GSQueue
 {
@@ -28,4 +28,6 @@ private:
 	bool mEmpty;
 	gs_list mStates;
 	Renderer mRenderer;
+	Body body;
+	Camera camera;
 };

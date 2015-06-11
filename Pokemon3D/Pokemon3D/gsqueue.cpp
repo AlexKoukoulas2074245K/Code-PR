@@ -16,8 +16,11 @@ bool GSQueue::Initialize(const HWND& hWindow)
 	mStates.push_back(value_t(new GSPlay));
 	
 	IOManager iom;
-	iom.LoadMultipleBodies("C:/users/alex/Pictures/projects/pkmnrevo/models/*");
-	iom.LoadMultipleBmps("C:/Users/alex/Pictures/*");
+	iom.ForceGetBody("C:/Users/alex/Pictures/projects/pkmnrevo/models/house.obj", body);
+	body.setSingleTexture("C:/Users/alex/Pictures/projects/pkmnrevo/textures/backup/house.png");
+	camera.Initialize(D3DXVECTOR3(0.0f, 0.0f, 25.0f));
+
+	mRenderer.PrepareBody(body, Renderer::ShaderType::DEFAULT);
 
 	for (cnst_iter iter = mStates.begin();
 		 iter != mStates.end();
@@ -47,6 +50,8 @@ void GSQueue::Update()
 
 void GSQueue::Render()
 {
-	mRenderer.ClearFrame();
+	mRenderer.PrepareFrame(camera.getViewMatrix(), camera.getPosition());
+	mRenderer.RenderBody(body, Renderer::ShaderType::DEFAULT);
 	mStates.front()->Render();
+	mRenderer.CompleteFrame();
 }

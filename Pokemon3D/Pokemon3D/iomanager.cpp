@@ -1,6 +1,7 @@
 #include "iomanager.h"
 #include "common.h"
 #include "ioutils.h"
+#include "window.h"
 
 IOManager::IOManager()
 {
@@ -16,10 +17,8 @@ void IOManager::GetBody(const str& id, Body& outBody)
 	if (mPrelBodies.count(id))
 	{
 		outBody = mPrelBodies[id];
-		outBody.setLoaded(true);
 		return;
 	}
-	outBody.setLoaded(false);
 	LOGLN(("Body does not exist: " + id).c_str());
 }
  

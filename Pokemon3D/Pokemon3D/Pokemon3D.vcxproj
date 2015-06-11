@@ -69,23 +69,32 @@
   <ItemGroup>
     <ClCompile Include="bitmap.cpp" />
     <ClCompile Include="body.cpp" />
+    <ClCompile Include="camera.cpp" />
+    <ClCompile Include="ddsloader.cpp" />
     <ClCompile Include="gsplay.cpp" />
     <ClCompile Include="gsqueue.cpp" />
     <ClCompile Include="iomanager.cpp" />
     <ClCompile Include="ioutils.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="renderer.cpp" />
+    <ClCompile Include="shader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitmap.h" />
     <ClInclude Include="body.h" />
+    <ClInclude Include="camera.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="a_gamestate.h" />
+    <ClInclude Include="d3dcommon.h" />
+    <ClInclude Include="ddshelpers.h" />
+    <ClInclude Include="ddsloader.h" />
     <ClInclude Include="gsplay.h" />
     <ClInclude Include="gsqueue.h" />
     <ClInclude Include="iomanager.h" />
     <ClInclude Include="ioutils.h" />
     <ClInclude Include="renderer.h" />
+    <ClInclude Include="shader.h" />
+    <ClInclude Include="texture.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

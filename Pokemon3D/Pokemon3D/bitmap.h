@@ -26,7 +26,8 @@ public:
 	void FillDimensions(const rgb_dims& source);
 	void setLoaded(const bool loaded){ mLoaded = loaded; }
 	void getRGBAt(const int x, const int y, rgb_trip& outRgb);
-	rgb_dims getDims() const { return mDims; }
+	const rgb_dims& getDims() const { return mDims; }
+	bool isLoaded() const { return mLoaded; }
 
 private:
 	rgb_dat mRGBData;
