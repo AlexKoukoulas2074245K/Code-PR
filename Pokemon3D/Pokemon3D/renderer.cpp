@@ -57,10 +57,10 @@ void Renderer::RenderBody(Body& body, const ShaderType shader)
 		100.0f);
 
 	D3DXMATRIX matRot;
-	D3DXMatrixRotationY(&matRot, static_cast<FLOAT>(D3DXToRadian(45.0f)));
-
-	// create the final transform
-	D3DXMATRIX matFinal = matRot * mCurrProjection * matProjection;
+	D3DXMATRIX matSca;
+	D3DXMatrixRotationY(&matRot, static_cast<FLOAT>(D3DXToRadian(0.0f)));
+	D3DXMatrixScaling(&matSca, 1.0f, 1.2f, 1.0f);
+	D3DXMATRIX matFinal = matRot * matSca * mCurrProjection * matProjection;
 
 	Shader::MatrixBuffer mb = {};
 	mb.camPosition = mCurrCamPosition;

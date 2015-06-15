@@ -73,6 +73,7 @@
     <ClCompile Include="ddsloader.cpp" />
     <ClCompile Include="gsplay.cpp" />
     <ClCompile Include="gsqueue.cpp" />
+    <ClCompile Include="hidmanager.cpp" />
     <ClCompile Include="iomanager.cpp" />
     <ClCompile Include="ioutils.cpp" />
     <ClCompile Include="main.cpp" />
@@ -90,6 +91,7 @@
     <ClInclude Include="ddsloader.h" />
     <ClInclude Include="gsplay.h" />
     <ClInclude Include="gsqueue.h" />
+    <ClInclude Include="hidmanager.h" />
     <ClInclude Include="iomanager.h" />
     <ClInclude Include="ioutils.h" />
     <ClInclude Include="renderer.h" />

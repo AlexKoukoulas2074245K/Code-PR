@@ -74,7 +74,7 @@ int CALLBACK WinMain(
 	ShowWindow(hWindow, SW_SHOW);
 	ShowCursor(false);
 
-	/* Component initialization */
+	/* Game State queue initialization */
 	GSQueue qstates;
 	if (!qstates.Initialize(hWindow)) return Shutdown(EXIT_FAILURE);
 
@@ -88,7 +88,7 @@ int CALLBACK WinMain(
 			DispatchMessage(&message);
 
 			if (message.message == WM_QUIT) break;
-			qstates.HandleInput();
+			qstates.HandleInput(message);
 		}
 		else
 		{

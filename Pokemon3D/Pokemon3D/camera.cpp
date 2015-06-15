@@ -12,10 +12,15 @@ void Camera::Initialize(const D3DXVECTOR3& position)
 	mUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 	mLook = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
 	mRight = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
+
+	/* temp */
+	moving = false;
+	mTargetYaw = mYaw;
 }
 
 void Camera::Move(const Direction& dir, const float mag)
 {
+	if (moving) return;
 	switch (dir)
 	{
 		case FORWARD:
@@ -52,6 +57,7 @@ void Camera::Move(const Direction& dir, const float mag)
 
 void Camera::Look(const Direction& dir, const float mag)
 {
+	if (moving) return;
 	switch (dir)
 	{
 		case RIGHT:
@@ -76,8 +82,29 @@ void Camera::Look(const Direction& dir, const float mag)
 	}
 }
 
+void Camera::Turn(const Direction& dir)
+{
+	if (moving) return;
+	moving = true;
+
+	if (dir == Direction::LEFT) mTargetYaw = mYaw - D3DXToRadian(90.0f);
+	else if(dir == Direction::RIGHT) mTargetYaw = mYaw + D3DXToRadian(90.0f);
+}
+
 const D3DXMATRIX& Camera::getViewMatrix()
 {
+	if (moving)
+	{
+		float fdiff = mTargetYaw - mYaw;
+		const float goal = 0.1f;
+		if (fdiff > goal) mYaw += goal;
+		else if (fdiff < -goal) mYaw -= goal;
+		else 
+		{
+			moving = false; mTargetYaw = mYaw; 
+		}
+	}
+
 	mUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 	mLook = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
 	mRight = D3DXVECTOR3(1.0f, 0.0f, 0.0f);

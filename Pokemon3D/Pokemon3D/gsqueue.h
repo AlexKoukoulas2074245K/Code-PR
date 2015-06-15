@@ -4,6 +4,7 @@
 #include "a_gamestate.h"
 #include "gsplay.h"
 #include "iomanager.h"
+#include "hidmanager.h"
 #include "camera.h"
 
 class GSQueue
@@ -19,7 +20,7 @@ public:
 	GSQueue();	
 	~GSQueue();
 	bool Initialize(const HWND& hWindow);
-	void HandleInput();
+	void HandleInput(const MSG& msg);
 	void Update();
 	void Render();
 	bool isEmpty() const { return mEmpty; }
@@ -27,7 +28,10 @@ public:
 private:
 	bool mEmpty;
 	gs_list mStates;
+
+	Camera mCamera;
+	Body mBody;
 	Renderer mRenderer;
-	Body body;
-	Camera camera;
+	IOManager mIOManager;
+	HIDManager mHIDManager;
 };
