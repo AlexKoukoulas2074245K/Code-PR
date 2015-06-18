@@ -32,7 +32,7 @@ public:
 	bool Initialize(const HWND hWindow);
 	bool PrepareBody(Body& body, const ShaderType shader);
 	void RenderBody(Body& body, const ShaderType shader);
-	void PrepareFrame(const D3DXMATRIX& currProjection, const D3DXVECTOR4& currCamPos);
+	void PrepareFrame(const D3DXMATRIX& currView, const D3DXVECTOR4& currCamPos);
 	void CompleteFrame();
 
 private:
@@ -62,6 +62,6 @@ private:
 	std::map<ShaderType, std::string> mShaderFiles;
 	std::map<ShaderType, comptr<ID3D11InputLayout>> mShaderLayouts;
 	
-	D3DXMATRIX mCurrProjection;
+	D3DXMATRIX mCurrView;
 	D3DXVECTOR4 mCurrCamPosition;
 };

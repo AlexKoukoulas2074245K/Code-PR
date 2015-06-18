@@ -1,5 +1,6 @@
 #pragma once
 #include "d3dcommon.h"
+#include <array>
 
 class Camera
 {
@@ -17,9 +18,8 @@ public:
 	void Initialize(const D3DXVECTOR3& cameraPos);
 	void Move(const Direction& dir, const float mag);
 	void Look(const Direction& dir, const float mag);
-	/* temp */
 	void Turn(const Direction& dir);
-
+	void Update();
 	const D3DXMATRIX& getViewMatrix();
 	D3DXVECTOR4 getPosition() const { return D3DXVECTOR4(mPosition.x, mPosition.y, mPosition.z, 1.0f); }
 
@@ -28,8 +28,9 @@ private:
 	D3DXVECTOR3 mPosition; 
 	D3DXVECTOR3 mUp, mLook, mRight;
 	float mYaw, mPitch, mRoll;
-	
-	/* temp*/
+	std::array<float, 6> mValidAngles;
 	float mTargetYaw;
-	bool moving;
+	bool mTurning;
+	size_t mCurrAngleIndex;
+
 };

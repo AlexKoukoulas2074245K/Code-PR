@@ -27,6 +27,7 @@ public:
 	void GetBody(const str& id, Body& outBody);
 	void LoadBody(const str& path);
 	void LoadMultipleBodies(const str& directory);
+	void GetAllBodiesFromLevel(const str& lvlFilename, std::list<Body>&  outList);
 
 	/* Bitmap image methods */
 	void ForceGetBmp(const str& id, Bitmap& outBmp);

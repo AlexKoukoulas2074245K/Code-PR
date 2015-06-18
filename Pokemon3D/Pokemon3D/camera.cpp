@@ -1,26 +1,32 @@
 #include "camera.h"
+#include "common.h"
+#define ANGLE static_cast<float>(D3DXToRadian(90))
+#define VALID_ANGLE_LO 1
+#define VALID_ANGLE_HI 4
+#define N_ANGLES 6
+#define TURN_SPEED 0.1f
 
 Camera::Camera(){}
 Camera::~Camera(){}
 
 void Camera::Initialize(const D3DXVECTOR3& position)
 {
+	mValidAngles = {{-ANGLE, 0.0f, ANGLE, 2*ANGLE, 3*ANGLE, 4*ANGLE}};
 	mPosition = position;
-	mYaw = 3.14f;
-	mPitch = 0.0f;
-	mRoll = 0.0f;
 	mUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 	mLook = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
 	mRight = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
-
-	/* temp */
-	moving = false;
+	mTurning = false;
+	mCurrAngleIndex = 3;
+	mYaw = mValidAngles[mCurrAngleIndex];
 	mTargetYaw = mYaw;
+	mPitch = 0.0f;
+	mRoll = 0.0f;
 }
 
 void Camera::Move(const Direction& dir, const float mag)
 {
-	if (moving) return;
+	if (mTurning) return;
 	switch (dir)
 	{
 		case FORWARD:
@@ -57,7 +63,7 @@ void Camera::Move(const Direction& dir, const float mag)
 
 void Camera::Look(const Direction& dir, const float mag)
 {
-	if (moving) return;
+	if (mTurning) return;
 	switch (dir)
 	{
 		case RIGHT:
@@ -82,29 +88,35 @@ void Camera::Look(const Direction& dir, const float mag)
 	}
 }
 
+void Camera::Update()
+{
+	if (mTurning && util::lerp(mYaw, mTargetYaw, TURN_SPEED, mYaw))
+	{
+		mTurning = false;
+		mYaw = mValidAngles[mCurrAngleIndex];
+		mTargetYaw = mYaw;
+	}
+}
+
 void Camera::Turn(const Direction& dir)
 {
-	if (moving) return;
-	moving = true;
+	if (mTurning) return;
+	mTurning = true;
 
-	if (dir == Direction::LEFT) mTargetYaw = mYaw - D3DXToRadian(90.0f);
-	else if(dir == Direction::RIGHT) mTargetYaw = mYaw + D3DXToRadian(90.0f);
+	if (dir == Direction::LEFT)
+	{
+		if (mCurrAngleIndex == VALID_ANGLE_LO) { mCurrAngleIndex = VALID_ANGLE_HI; mTargetYaw = mValidAngles[0]; }
+		else { mCurrAngleIndex--; mTargetYaw = mValidAngles[mCurrAngleIndex]; }
+	}
+	else if (dir == Direction::RIGHT)
+	{
+		if (mCurrAngleIndex == VALID_ANGLE_HI){ mCurrAngleIndex = VALID_ANGLE_LO; mTargetYaw = mValidAngles[N_ANGLES - 1]; }
+		else { mCurrAngleIndex++; mTargetYaw = mValidAngles[mCurrAngleIndex]; }
+	}
 }
 
 const D3DXMATRIX& Camera::getViewMatrix()
 {
-	if (moving)
-	{
-		float fdiff = mTargetYaw - mYaw;
-		const float goal = 0.1f;
-		if (fdiff > goal) mYaw += goal;
-		else if (fdiff < -goal) mYaw -= goal;
-		else 
-		{
-			moving = false; mTargetYaw = mYaw; 
-		}
-	}
-
 	mUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 	mLook = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
 	mRight = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
@@ -116,7 +128,7 @@ const D3DXMATRIX& Camera::getViewMatrix()
 
 	D3DXMATRIX pitchMatrix;
 	D3DXMatrixRotationAxis(&pitchMatrix, &mRight, mPitch);
-	D3DXVec3TransformCoord(&mLook, &mLook, &pitchMatrix);
+	//D3DXVec3TransformCoord(&mLook, &mLook, &pitchMatrix);
 	D3DXVec3TransformCoord(&mUp, &mUp, &pitchMatrix);
 
 	D3DXMATRIX rollMatrix;

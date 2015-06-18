@@ -76,6 +76,7 @@
     <ClCompile Include="hidmanager.cpp" />
     <ClCompile Include="iomanager.cpp" />
     <ClCompile Include="ioutils.cpp" />
+    <ClCompile Include="level.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="shader.cpp" />
@@ -94,6 +95,7 @@
     <ClInclude Include="hidmanager.h" />
     <ClInclude Include="iomanager.h" />
     <ClInclude Include="ioutils.h" />
+    <ClInclude Include="level.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="texture.h" />

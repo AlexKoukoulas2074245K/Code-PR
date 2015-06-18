@@ -2,10 +2,6 @@
 #include <sstream>
 #include "ioutils.h"
 
-// Splitting helpers defined at the bottom
-std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems);
-std::vector<std::string> split(const std::string &s, char delim);
-
 bool LoadOBJFromFile(const char * const filename, Body& result)
 {
 
@@ -27,7 +23,7 @@ bool LoadOBJFromFile(const char * const filename, Body& result)
 	std::vector<organizedData::OBJIndex> orgIndices;
 
 	std::string line;
-	for (; std::getline(file, line);)
+	for (;std::getline(file, line);)
 	{
 		if (line[0] == '#') continue;
 

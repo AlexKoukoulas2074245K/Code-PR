@@ -33,10 +33,21 @@ namespace util
 {
 	template<class A>
 	struct pair{ A a, b; };
-
 	inline std::string wstringToString(const std::wstring in) 
 	{ return std::string(in.begin(), in.end()); }
 	inline std::wstring stringToWString(const std::string in) 
 	{ return std::wstring(in.begin(), in.end()); }
+	
+	/* Standard LERP */
+	inline bool lerp(const float current,
+				  const float target,
+				  const float dt,
+				  float& outResult)
+	{
+		float fdiff = target - current;
+		if (fdiff > dt) { outResult += dt; return false; }
+		else if (fdiff < -dt) { outResult -= dt; return false; }
+		else { outResult = target; return true; }
+	}
 }
 

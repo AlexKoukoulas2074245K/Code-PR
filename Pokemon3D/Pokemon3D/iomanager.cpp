@@ -2,6 +2,8 @@
 #include "common.h"
 #include "ioutils.h"
 #include "window.h"
+#include <fstream>
+#include <vector>
 
 IOManager::IOManager()
 {
@@ -50,6 +52,39 @@ void IOManager::LoadMultipleBodies(const str& directory)
 	for (str_list_iter iter = paths.begin();
 		iter != paths.end();
 		++iter) LoadBody(*iter);
+}
+
+/* Loads all bodies specified in a lvl file */
+void IOManager::GetAllBodiesFromLevel(const str& lvlFilename, std::list<Body>&  outList)
+{
+	std::ifstream f;
+	f.open(lvlFilename.c_str());
+	
+	str line;
+	float x = 0.0f;
+	float y = 0.0f;
+	float z = 0.0f;
+	for (; std::getline(f, line);)
+	{
+		std::vector<str> filenames = split(line, '|');
+		for (std::vector<str>::iterator iter = filenames.begin();
+			iter != filenames.end();
+			++iter)
+		{
+			str objectFilename = split(*iter, '\\').back();
+			str objectName = split(objectFilename, '.').front();
+			str objectLastName = split(objectName, '_').back();
+			Body b;
+			ForceGetBody("C:/users/alex/pictures/projects/pkmnrevo/models/" + objectName + ".obj", b);
+			b.setSingleTexture(("C:/users/alex/pictures/projects/pkmnrevo/textures/materials/" + objectName + ".png").c_str());
+			y = objectLastName.compare("floor") ? 0.0f : -0.8f;
+			b.setLevelPos(Body::level_pos{x, y, z});
+			outList.push_back(b);
+			x -= 1.6f;
+		}
+		x = 0.0f;
+		z += 1.6f;
+	}
 }
 
 void IOManager::GetBmp(const str& id, Bitmap& outBmp)

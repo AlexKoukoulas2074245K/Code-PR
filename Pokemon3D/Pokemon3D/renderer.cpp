@@ -16,12 +16,12 @@ bool Renderer::Initialize(const HWND hWindow)
 }
 
 void Renderer::PrepareFrame(
-	const D3DXMATRIX& currProjection,
+	const D3DXMATRIX& currView,
 	const D3DXVECTOR4& currCamPos)
 {
 	mDevcon->ClearRenderTargetView(mBackBuffer.Get(), d3dconst::BG_COLOR);
 	mDevcon->ClearDepthStencilView(mDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-	mCurrProjection = currProjection;
+	mCurrView = currView;
 	mCurrCamPosition = currCamPos;
 }
 
@@ -55,18 +55,19 @@ void Renderer::RenderBody(Body& body, const ShaderType shader)
 		(FLOAT) window::WIDTH / (FLOAT) window::HEIGHT,
 		0.1f,
 		100.0f);
-
+	
+	D3DXMATRIX matTrans;
 	D3DXMATRIX matRot;
-	D3DXMATRIX matSca;
-	D3DXMatrixRotationY(&matRot, static_cast<FLOAT>(D3DXToRadian(0.0f)));
-	D3DXMatrixScaling(&matSca, 1.0f, 1.2f, 1.0f);
-	D3DXMATRIX matFinal = matRot * matSca * mCurrProjection * matProjection;
+	D3DXMatrixTranslation(&matTrans, body.getLevelPos().levelPosX, body.getLevelPos().levelPosY, body.getLevelPos().levelPosZ);
+	D3DXMatrixRotationY(&matRot, 0.0f);
+
+	D3DXMATRIX matFinal = matTrans * mCurrView * matProjection;
 
 	Shader::MatrixBuffer mb = {};
 	mb.camPosition = mCurrCamPosition;
 	mb.finalMatrix = matFinal;
 	mb.rotMatrix = matRot;
-	mb.worldMatrix = matRot;
+	mb.worldMatrix = matTrans;
 
 	//TODO render material
 	mDevcon->PSSetShaderResources(0, 1, body.getActiveTexture().immTexture().GetAddressOf());

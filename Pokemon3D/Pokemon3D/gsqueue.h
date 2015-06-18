@@ -5,7 +5,6 @@
 #include "gsplay.h"
 #include "iomanager.h"
 #include "hidmanager.h"
-#include "camera.h"
 
 class GSQueue
 {
@@ -28,10 +27,7 @@ public:
 private:
 	bool mEmpty;
 	gs_list mStates;
-
-	Camera mCamera;
-	Body mBody;
-	Renderer mRenderer;
-	IOManager mIOManager;
-	HIDManager mHIDManager;
+	sptr<Renderer> mRenderer;
+	sptr<IOManager> mIOManager;
+	sptr<HIDManager> mHIDManager;
 };
