@@ -25,13 +25,17 @@ public:
 		DEFAULT, HUD, NONE
 	};
 
+	typedef struct StdPos
+	{
+		float x, y, z;
+	} std_pos;
 	
 	Renderer();
 	~Renderer();
 
 	bool Initialize(const HWND hWindow);
 	bool PrepareBody(Body& body, const ShaderType shader);
-	void RenderBody(Body& body, const ShaderType shader);
+	void RenderBody(const ShaderType shader, const std_pos& pos, Body& body);
 	void PrepareFrame(const D3DXMATRIX& currView, const D3DXVECTOR4& currCamPos);
 	void CompleteFrame();
 

@@ -38,7 +38,7 @@ void Renderer::ChangeActiveLayout(const ShaderType shaderType)
 	mDevcon->IASetInputLayout(mShaderLayouts[mActiveShaderType].Get());
 }
 
-void Renderer::RenderBody(Body& body, const ShaderType shader)
+void Renderer::RenderBody(const ShaderType shader, const std_pos& pos, Body& body)
 {
 	if (!body.isReady()) { LOGLN("Body rejected"); return; }
 	if (mActiveShaderType != shader) ChangeActiveLayout(shader);
@@ -58,7 +58,7 @@ void Renderer::RenderBody(Body& body, const ShaderType shader)
 	
 	D3DXMATRIX matTrans;
 	D3DXMATRIX matRot;
-	D3DXMatrixTranslation(&matTrans, body.getLevelPos().levelPosX, body.getLevelPos().levelPosY, body.getLevelPos().levelPosZ);
+	D3DXMatrixTranslation(&matTrans, pos.x, pos.y, pos.z);
 	D3DXMatrixRotationY(&matRot, 0.0f);
 
 	D3DXMATRIX matFinal = matTrans * mCurrView * matProjection;

@@ -2,7 +2,7 @@
 #include <sstream>
 #include "ioutils.h"
 
-bool LoadOBJFromFile(const char * const filename, Body& result)
+bool LoadOBJFromFile(std::string filename, Body& result)
 {
 
 	std::string strname(filename);
@@ -21,7 +21,11 @@ bool LoadOBJFromFile(const char * const filename, Body& result)
 	std::vector<disorganizedData::disorganized_Texcoord> disTexcoords;
 	std::vector<disorganizedData::disorganized_Normal> disNormals;
 	std::vector<organizedData::OBJIndex> orgIndices;
-
+	std::string objectFilename = split(filename, '/').back();
+	std::string objectName = split(objectFilename, '.').front();
+	std::string objectFirstName = split(objectName, '_').front();
+	bool is2d = !objectFirstName.compare("2d");
+	
 	std::string line;
 	for (;std::getline(file, line);)
 	{
@@ -35,7 +39,7 @@ bool LoadOBJFromFile(const char * const filename, Body& result)
 			if (prefix[1] == 't')
 			{
 				disorganizedData::disorganized_Texcoord rawTexcoord = {};
-				rawTexcoord.u = std::stof(splitContents[1]);
+				rawTexcoord.u = is2d ? 1 - std::stof(splitContents[1]) : std::stof(splitContents[1]);
 				rawTexcoord.v = 1 - std::stof(splitContents[2]);
 				disTexcoords.push_back(rawTexcoord);
 			}
@@ -135,10 +139,10 @@ bool LoadOBJFromFile(const char * const filename, Body& result)
 	return true;
 }
 
-bool LoadBMPFromFile(const char* const filename, Bitmap& outBmp)
+bool LoadBMPFromFile(std::string filename, Bitmap& outBmp)
 {
 	FILE* f;
-	fopen_s(&f, filename, "rb");
+	fopen_s(&f, filename.c_str(), "rb");
 
 	if (f == NULL)
 	{

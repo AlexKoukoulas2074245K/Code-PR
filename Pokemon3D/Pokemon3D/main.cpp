@@ -3,6 +3,7 @@
 #include "renderer.h"
 #include "window.h"
 #include <fstream>
+std::ofstream LOGFILE;
 
 LRESULT CALLBACK WndProc(
 	HWND hwnd,
@@ -18,6 +19,8 @@ int CALLBACK WinMain(
 	LPSTR lpCmdLine,
 	int nCmdShow)
 {
+	START_EXT_LOGGING();
+
 	/* Window Handle */
 	HWND hWindow;
 
@@ -103,6 +106,7 @@ int CALLBACK WinMain(
 
 int Shutdown(const int exitCode)
 {
+	STOP_EXT_LOGGING();
 	ShowCursor(true);
 	return exitCode;
 }

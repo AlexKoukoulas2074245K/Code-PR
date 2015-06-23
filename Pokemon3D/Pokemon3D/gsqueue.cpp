@@ -15,7 +15,8 @@ bool GSQueue::Initialize(const HWND& hWindow)
 
 	/* Initialize the renderer */
 	if (!mRenderer->Initialize(hWindow)) return false;
-	
+	mIOManager->SetRenderer(mRenderer);
+
 	/* Add and initialize game states */
 	mStates.push_back(value_t(new GSPlay));
 	for (cnst_iter iter = mStates.begin();

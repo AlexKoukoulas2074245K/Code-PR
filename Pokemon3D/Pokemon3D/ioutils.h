@@ -2,6 +2,7 @@
 #include "common.h"
 #include "body.h"
 #include "bitmap.h"
+#include <string>
 
 namespace disorganizedData
 {
@@ -16,8 +17,8 @@ namespace organizedData
 }
 
 /* Core obj file loader */
-bool LoadOBJFromFile(const char* const filename, Body& outModel);
-bool LoadBMPFromFile(const char* const filename, Bitmap& outBmp);
+bool LoadOBJFromFile(std::string filename, Body& outModel);
+bool LoadBMPFromFile(std::string filename, Bitmap& outBmp);
 
 std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems);
 std::vector<std::string> split(const std::string &s, char delim);

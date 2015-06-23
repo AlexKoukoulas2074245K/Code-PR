@@ -70,6 +70,7 @@
     <ClCompile Include="bitmap.cpp" />
     <ClCompile Include="body.cpp" />
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="clock.cpp" />
     <ClCompile Include="ddsloader.cpp" />
     <ClCompile Include="gsplay.cpp" />
     <ClCompile Include="gsqueue.cpp" />
@@ -85,6 +86,7 @@
     <ClInclude Include="bitmap.h" />
     <ClInclude Include="body.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="clock.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="a_gamestate.h" />
     <ClInclude Include="d3dcommon.h" />
