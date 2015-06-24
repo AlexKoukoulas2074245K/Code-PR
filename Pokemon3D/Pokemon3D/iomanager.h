@@ -61,6 +61,7 @@ private:
 	static const char FILE_PATH_SEP = '\\';
 	static const char FILE_EXT_SEP = '.';
 	static const char FILE_NAME_SEP = '_';
+	static const char VALUE_SEP = ',';
 
 	sptr<Renderer> mRenderer;
 	std::map<str, Body> mPrelBodies;

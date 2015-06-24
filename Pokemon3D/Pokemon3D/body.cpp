@@ -1,15 +1,7 @@
 #include "body.h"
 
-Body::Body(){}
-Body::Body(const std::list<Vertex>& vertices,
-		   const std::list<index_t>& indices,
-		   const Dimensions& dimensions)
-{
-	mVertices = vertices;
-	mIndices = indices;
-	mDimensions = dimensions;
-	mActiveTexture = 0;
-}
+Body::Body():mActiveTexture(0){}
+Body::~Body(){}
 
 bool Body::isReady() const 
 {

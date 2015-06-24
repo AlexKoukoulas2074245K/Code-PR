@@ -56,12 +56,16 @@ void Renderer::RenderBody(const ShaderType shader, const std_pos& pos, Body& bod
 		0.1f,
 		100.0f);
 	
-	D3DXMATRIX matTrans;
-	D3DXMATRIX matRot;
+	D3DXMATRIX matTrans, matRot, matScale;
 	D3DXMatrixTranslation(&matTrans, pos.x, pos.y, pos.z);
 	D3DXMatrixRotationY(&matRot, 0.0f);
+	D3DXMatrixScaling(
+		&matScale,
+		body.getCustomDims().maxWidth / body.getDimensions().maxWidth,
+		1.0f,
+		body.getCustomDims().maxDepth / body.getDimensions().maxDepth);
 
-	D3DXMATRIX matFinal = matTrans * mCurrView * matProjection;
+	D3DXMATRIX matFinal = matScale * matRot * matTrans * mCurrView * matProjection;
 
 	Shader::MatrixBuffer mb = {};
 	mb.camPosition = mCurrCamPosition;

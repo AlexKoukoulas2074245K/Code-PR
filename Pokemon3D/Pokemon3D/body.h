@@ -33,14 +33,13 @@ public:
 	typedef comptr<ID3D11InputLayout> body_layout;
 
 	Body();
-	Body(const vertex_list& vertices,
-		 const index_list& indices,
-		 const Dimensions& dimensions);
+	~Body();
 
 	bool isReady() const;
 	const vertex_list& getVertices() const { return mVertices; }
 	const index_list& getIndices() const { return mIndices; }
 	const body_dims& getDimensions() const { return mDimensions; }
+	const body_dims& getCustomDims() const { return mCustomDims; }
 	const vertex_sizet getVertexCount() const { return mVertices.size(); }
 	const index_sizet getIndexCount() const { return mIndices.size(); }
 	const Texture& getActiveTexture() const { return mTextures[mActiveTexture]; }
@@ -48,9 +47,9 @@ public:
 	void setVertices(const vertex_list& vertices) { mVertices = vertices; }
 	void setIndices(const index_list& indices) {  mIndices = indices; }
 	void setDimensions(const Dimensions& dimensions) { mDimensions = dimensions; }
+	void setCustomDims(const Dimensions& dimensions) { mCustomDims = dimensions; }
 	void setTexturesToLoadList(const textoload_list& source) { mTexturesToLoad = source; }
 	void setSingleTexture(const std::string& texFilename) { mTexturesToLoad.push_back(texFilename); }
-
 	textoload_list& modTexturesToLoad() { return mTexturesToLoad; }
 	texture_list& modTextures() { return mTextures; }
 	body_buffer& modVertexBuffer(){ return mVertexBuffer; }
@@ -65,6 +64,7 @@ private:
 	vertex_list mVertices;
 	index_list mIndices;
 	body_dims mDimensions;
+	body_dims mCustomDims;
 	body_buffer mVertexBuffer;
 	body_buffer mIndexBuffer;
 };

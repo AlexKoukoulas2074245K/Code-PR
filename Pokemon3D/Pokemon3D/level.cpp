@@ -16,7 +16,7 @@ bool Level::Initialize(
 	Clock c;
 	if (!c.InitClock()) return false;
 	iomanager->GetAllBodiesFromLevel("C:/Users/alex/Pictures/projects/pkmnrevo/levels/test.lvl", TILE_SIZE, mObjects);
-	LOGLN(("Completed in: " + std::to_string(c.GetCounter()) + " ms.").c_str());
+	LOGLN(("Level Initialization Completed in: " + std::to_string(c.GetCounter()) + " ms.").c_str());
 	return true;
 }
 

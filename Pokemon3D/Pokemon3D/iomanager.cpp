@@ -5,6 +5,15 @@
 #include <fstream>
 #include <vector>
 
+#define LEVEL_IGNORE_DIRECTIVE "IGNORE"
+#define LEVEL_FILL_OBJECT_NAME "2d_out_empty_floor"
+#define LEVEL_SMALL_PADDING 0.001f
+#define LEVEL_FLOOR_NAME "floor"
+#define LEVEL_WILD_NAME "wild"
+#define LEVEL_DESC_SWITCH "#Desc#"
+#define LEVEL_COMP_SWITCH "#Comps#"
+#define LEVEL_HOUSE_SWITCH "#Houses#"
+
 IOManager::IOManager()
 {
 	mSuppFormats[Format::BMP] = ".bmp";
@@ -74,35 +83,95 @@ void IOManager::GetAllBodiesFromLevel(
 	f.open(lvlFilename.c_str());
 	
 	str line;
-	std_pos posCounter = {};
 
+	/* Level Description parsing */
+	std::getline(f, line);
+	assert(!line.compare(LEVEL_DESC_SWITCH));
+	std::getline(f, line);
+	std::vector<str> lvlDesc = split(line, VALUE_SEP);
+	float maxWidth = std::stof(lvlDesc[0]);
+	float maxDepth = std::stof(lvlDesc[1]);
+
+	/* Level Component parsing */
+	std::getline(f, line);
+	assert(!line.compare(LEVEL_COMP_SWITCH));
+
+	std_pos posCounter = {};
+	bool houseSwitch = false;
 	for (; std::getline(f, line);)
 	{
-		std::vector<str> filenames = split(line, LEVEL_COMP_SEP);
-		for (std::vector<str>::iterator iter = filenames.begin();
-			iter != filenames.end();
-			++iter)
+		/* End of game object description, start of house description */
+		if (!line.compare(LEVEL_HOUSE_SWITCH)) { houseSwitch = true; continue; }
+
+		if (houseSwitch)
 		{
-			/* Path comprehension */
-			str objectFilename = split(*iter, FILE_PATH_SEP).back();
-			str objectName = split(objectFilename, FILE_EXT_SEP).front();
-			str objectLastName = split(objectName, FILE_NAME_SEP).back();
+			std::vector<str> houseComps = split(line, LEVEL_COMP_SEP);
+			std::vector<str> houseLoc   = split(houseComps[1], VALUE_SEP);
+			str houseName = houseComps[0];
+			Body b; str bTex;
 
-			Body b;
-			str bTexPath;
-			GetPathOf(objectName, Format::PNG, bTexPath);
-			b.setSingleTexture(bTexPath);
-			ForceGetBody(objectName, b);
-			posCounter.y = objectLastName.compare("floor") && objectLastName.compare("wild") ? 0.0f : -0.8f;
-			std_body res{b, posCounter};
+			GetPathOf(houseName, Format::PNG, bTex);
+			b.setSingleTexture(bTex);
+			ForceGetBody(houseName, b);
+			b.setCustomDims({b.getDimensions().maxWidth, b.getDimensions().maxHeight, b.getDimensions().maxDepth});
+			float houseX = std::stof(houseLoc[0]);
+			float houseZ = std::stof(houseLoc[1]);
+			std_body res{b, {houseX, tileSize / 2, houseZ}};
 			outList.push_back(res);
-
-			posCounter.x -= tileSize;
-
+			continue;
 		}
-		posCounter.x = 0.0f;
-		posCounter.z += tileSize;
+		else
+		{
+			std::vector<str> filenames = split(line, LEVEL_COMP_SEP);
+			for (std::vector<str>::iterator iter = filenames.begin();
+				iter != filenames.end();
+				++iter)
+			{
+				/* Building or house map areas which will be covered last */
+				if (!iter->compare(LEVEL_IGNORE_DIRECTIVE))
+				{
+					posCounter.x -= tileSize;
+					continue;
+				}
+
+				/* Path comprehension */
+				str objectFilename = split(*iter, FILE_PATH_SEP).back();
+				str objectName = split(objectFilename, FILE_EXT_SEP).front();
+				str objectLastName = split(objectName, FILE_NAME_SEP).back();
+
+				/* Next level game object creation */
+				Body b; str bTexPath;
+				GetPathOf(objectName, Format::PNG, bTexPath);
+				b.setSingleTexture(bTexPath);
+				ForceGetBody(objectName, b);
+				b.setCustomDims({b.getDimensions().maxWidth, b.getDimensions().maxHeight, b.getDimensions().maxDepth});
+				posCounter.y = objectLastName.compare(LEVEL_FLOOR_NAME) &&
+					objectLastName.compare(LEVEL_WILD_NAME) ?
+					0.0f : -tileSize / 2;
+				std_body res{b, posCounter};
+				outList.push_back(res);
+
+				/* Horizontal position-cursor advance */
+				posCounter.x -= tileSize;
+			}
+			posCounter.x = 0.0f;
+			posCounter.z += tileSize;
+		}		
 	}
+
+	/* Level Filler creation (for empty or transparent areas) */
+	Body uniFloor;
+	str floorTexPath;
+	GetPathOf(LEVEL_FILL_OBJECT_NAME, Format::PNG, floorTexPath);
+	uniFloor.setSingleTexture(floorTexPath);
+	ForceGetBody(LEVEL_FILL_OBJECT_NAME, uniFloor);
+	uniFloor.setCustomDims({maxWidth, 1.0f, maxDepth});
+	std_pos uniFloorPos{
+		-maxWidth / 2 + tileSize / 2,
+		-tileSize / 2 - LEVEL_SMALL_PADDING,
+		 maxDepth / 2 - tileSize / 2};
+	std_body res{uniFloor, uniFloorPos};
+	outList.push_back(res);
 }
 
 void IOManager::GetBmp(const str& id, Bitmap& outBmp)
