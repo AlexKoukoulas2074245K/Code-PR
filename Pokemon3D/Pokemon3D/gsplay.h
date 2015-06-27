@@ -17,5 +17,5 @@ public:
 private:
 	Body mBody;
 	Camera mCamera;
-	Level level;
+	Level mLevel;
 };

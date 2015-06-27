@@ -16,11 +16,14 @@ public:
 	};
 
 	typedef Renderer::std_pos std_pos;
-	typedef struct BodyStruct
+	typedef Renderer::std_rot std_rot;
+
+	typedef struct StaticGeometry
 	{
 		Body body;
 		std_pos pos;
-	} std_body;
+		std_rot rot;
+	} static_geometry;
 
 	typedef std::string str;
 	typedef std::list<std::string> str_list;
@@ -41,7 +44,8 @@ public:
 	void GetAllBodiesFromLevel(
 		const str& lvlFilename,
 		const float tileSize,
-		std::list<std_body>& outList);
+		std::list<static_geometry>& outList,
+		std::list<static_geometry>& outLakeList);
 
 	/* Bitmap image methods */
 	void ForceGetBmp(const str& id, Bitmap& outBmp);
@@ -62,7 +66,7 @@ private:
 	static const char FILE_EXT_SEP = '.';
 	static const char FILE_NAME_SEP = '_';
 	static const char VALUE_SEP = ',';
-
+	
 	sptr<Renderer> mRenderer;
 	std::map<str, Body> mPrelBodies;
 	std::map<str, Bitmap> mPrelBitmaps;

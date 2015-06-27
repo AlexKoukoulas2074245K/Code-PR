@@ -17,7 +17,7 @@ void Camera::Initialize(const D3DXVECTOR3& position)
 	mLook = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
 	mRight = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
 	mTurning = false;
-	mCurrAngleIndex = 3;
+	mCurrAngleIndex = 1;
 	mYaw = mValidAngles[mCurrAngleIndex];
 	mTargetYaw = mYaw;
 	mPitch = 0.0f;

@@ -25,6 +25,6 @@ void HIDManager::UpdateState(const MSG& msg)
 }
 
 void HIDManager::CompleteFrame(){ mPrevState = mCurrState; }
-bool HIDManager::KeyDown(const key_t key){ return mCurrState & key; }
-bool HIDManager::KeyUp(const key_t key){ return !(mCurrState & key); }
-bool HIDManager::KeyTapped(const key_t key){ return mCurrState & key && !(mPrevState & key); }
+bool HIDManager::KeyDown(const key_t key){ return (mCurrState & key) != 0; }
+bool HIDManager::KeyUp(const key_t key){ return (!(mCurrState & key)) == 0; }
+bool HIDManager::KeyTapped(const key_t key){ return (mCurrState & key) != 0 && (!(mPrevState & key)) == 0; }

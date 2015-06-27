@@ -30,12 +30,21 @@ public:
 		float x, y, z;
 	} std_pos;
 	
+	typedef struct StdRot
+	{
+		float rotX, rotY, rotZ;
+	} std_rot;
+
 	Renderer();
 	~Renderer();
 
 	bool Initialize(const HWND hWindow);
 	bool PrepareBody(Body& body, const ShaderType shader);
-	void RenderBody(const ShaderType shader, const std_pos& pos, Body& body);
+	void RenderBody(
+		const ShaderType shader,
+		const std_pos& pos,
+		const std_rot& rot,
+		Body& body);
 	void PrepareFrame(const D3DXMATRIX& currView, const D3DXVECTOR4& currCamPos);
 	void CompleteFrame();
 

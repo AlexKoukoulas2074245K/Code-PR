@@ -46,8 +46,8 @@ public:
 
 	void setVertices(const vertex_list& vertices) { mVertices = vertices; }
 	void setIndices(const index_list& indices) {  mIndices = indices; }
-	void setDimensions(const Dimensions& dimensions) { mDimensions = dimensions; }
-	void setCustomDims(const Dimensions& dimensions) { mCustomDims = dimensions; }
+	void setDimensions(const body_dims& dimensions) { mDimensions = dimensions; }
+	void setCustomDims(const body_dims& dimensions) { mCustomDims = dimensions; }
 	void setTexturesToLoadList(const textoload_list& source) { mTexturesToLoad = source; }
 	void setSingleTexture(const std::string& texFilename) { mTexturesToLoad.push_back(texFilename); }
 	textoload_list& modTexturesToLoad() { return mTexturesToLoad; }

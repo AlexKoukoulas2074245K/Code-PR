@@ -38,7 +38,11 @@ void Renderer::ChangeActiveLayout(const ShaderType shaderType)
 	mDevcon->IASetInputLayout(mShaderLayouts[mActiveShaderType].Get());
 }
 
-void Renderer::RenderBody(const ShaderType shader, const std_pos& pos, Body& body)
+void Renderer::RenderBody(
+	const ShaderType shader,
+	const std_pos& pos,
+	const std_rot& rot,
+	Body& body)
 {
 	if (!body.isReady()) { LOGLN("Body rejected"); return; }
 	if (mActiveShaderType != shader) ChangeActiveLayout(shader);
@@ -54,23 +58,29 @@ void Renderer::RenderBody(const ShaderType shader, const std_pos& pos, Body& bod
 		(FLOAT) XMConvertToRadians(45),
 		(FLOAT) window::WIDTH / (FLOAT) window::HEIGHT,
 		0.1f,
-		100.0f);
+		40.0f);
 	
-	D3DXMATRIX matTrans, matRot, matScale;
+	D3DXMATRIX matTrans, matRotX, matRotY, matRotZ, matScale;
 	D3DXMatrixTranslation(&matTrans, pos.x, pos.y, pos.z);
-	D3DXMatrixRotationY(&matRot, 0.0f);
+	D3DXMatrixRotationX(&matRotX, rot.rotX);
+	D3DXMatrixRotationY(&matRotY, rot.rotY);
+	D3DXMatrixRotationZ(&matRotZ, rot.rotZ);
 	D3DXMatrixScaling(
 		&matScale,
 		body.getCustomDims().maxWidth / body.getDimensions().maxWidth,
 		1.0f,
 		body.getCustomDims().maxDepth / body.getDimensions().maxDepth);
 
-	D3DXMATRIX matFinal = matScale * matRot * matTrans * mCurrView * matProjection;
+	D3DXMATRIX matFinal = matScale *
+						  matRotX * matRotY * matRotZ * 
+						  matTrans *
+						  mCurrView *
+						  matProjection;
 
 	Shader::MatrixBuffer mb = {};
 	mb.camPosition = mCurrCamPosition;
 	mb.finalMatrix = matFinal;
-	mb.rotMatrix = matRot;
+	mb.rotMatrix = matRotX * matRotY * matRotZ;
 	mb.worldMatrix = matTrans;
 
 	//TODO render material

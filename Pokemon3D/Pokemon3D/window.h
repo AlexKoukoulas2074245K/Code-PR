@@ -4,9 +4,10 @@
 /* FULL SCREEN SWITCH */
 //#define FULL_SCREEN
 
+inline DWORD getTime(){ return timeGetTime(); }
+
 namespace window
 {
-
 #ifdef FULL_SCREEN
 	static const bool FULLSCREEN = true;
 	static const unsigned long WIDTH = GetSystemMetrics(SM_CXSCREEN);

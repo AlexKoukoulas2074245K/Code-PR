@@ -46,6 +46,7 @@ void GSQueue::Update()
 		mEmpty = mStates.empty();
 	}
 	mHIDManager->CompleteFrame();
+	mFpsc.Update();
 }
 
 void GSQueue::Render()

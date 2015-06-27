@@ -135,7 +135,7 @@ bool LoadOBJFromFile(std::string filename, Body& result)
 	result.setVertices(resultVertices);
 	result.setIndices(resultIndices);
 	result.setDimensions(resultDimensions);
-
+	result.setCustomDims(resultDimensions);
 	return true;
 }
 

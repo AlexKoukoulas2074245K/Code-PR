@@ -72,6 +72,7 @@
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="clock.cpp" />
     <ClCompile Include="ddsloader.cpp" />
+    <ClCompile Include="fpscounter.cpp" />
     <ClCompile Include="gsplay.cpp" />
     <ClCompile Include="gsqueue.cpp" />
     <ClCompile Include="hidmanager.cpp" />
@@ -92,6 +93,7 @@
     <ClInclude Include="d3dcommon.h" />
     <ClInclude Include="ddshelpers.h" />
     <ClInclude Include="ddsloader.h" />
+    <ClInclude Include="fpscounter.h" />
     <ClInclude Include="gsplay.h" />
     <ClInclude Include="gsqueue.h" />
     <ClInclude Include="hidmanager.h" />

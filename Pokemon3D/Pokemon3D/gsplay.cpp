@@ -8,8 +8,8 @@ bool GSPlay::Initialize()
 	//mIOManager->ForceGetBody("C:/Users/alex/Pictures/projects/pkmnrevo/models/house.obj", mBody);
 	//mBody.setSingleTexture("C:/Users/alex/Pictures/projects/pkmnrevo/textures/materials/house.png");
 	//mRenderer->PrepareBody(mBody, Renderer::ShaderType::DEFAULT);
-	mCamera.Initialize(D3DXVECTOR3(0.0f, 0.0f, 25.0f));
-	return level.Initialize(mRenderer, mIOManager);
+	mCamera.Initialize(D3DXVECTOR3(-11.0f, 0.0f, 25.0f));
+	return mLevel.Initialize(mRenderer, mIOManager);
 }
 
 void GSPlay::Update()
@@ -21,11 +21,12 @@ void GSPlay::Update()
 	if (mHIDManager->KeyDown(KEY_A)) mCamera.Look(Camera::UP, 0.01f);
 	if (mHIDManager->KeyDown(KEY_B)) mCamera.Look(Camera::DOWN, 0.01f);
 	mCamera.Update();
+	mLevel.Update();
 }
 
 void GSPlay::Render()
 {
 	mRenderer->PrepareFrame(mCamera.getViewMatrix(), mCamera.getPosition());
-	level.Render();
+	mLevel.Render();
 	mRenderer->CompleteFrame();
 }

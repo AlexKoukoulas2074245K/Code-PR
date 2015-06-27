@@ -5,6 +5,7 @@
 #include "gsplay.h"
 #include "iomanager.h"
 #include "hidmanager.h"
+#include "fpscounter.h"
 
 class GSQueue
 {
@@ -30,4 +31,5 @@ private:
 	sptr<Renderer> mRenderer;
 	sptr<IOManager> mIOManager;
 	sptr<HIDManager> mHIDManager;
+	FpsCounter mFpsc;
 };
