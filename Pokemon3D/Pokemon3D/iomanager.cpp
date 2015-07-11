@@ -17,6 +17,7 @@
 #define LEVEL_DESC_SWITCH "#Desc#"
 #define LEVEL_COMP_SWITCH "#Comps#"
 #define LEVEL_HOUSE_SWITCH "#Houses#"
+#define LEVEL_REP_SWITCH "#LevelMap#"
 #define LEVEL_FILL_OBJECT_FULL_NAME "2d_out_empty_floor"
 #define LEVEL_LAKE_PIECE_FULL_NAME "2d_out_lake_floor"
 #define LEVEL_LEFT_LAKE_PIECE_FULL_NAME "out_lake_left_short"
@@ -137,8 +138,10 @@ void IOManager::LoadMultipleBodies(const str& directory)
 void IOManager::GetAllBodiesFromLevel(
 	const str& lvlFilename,
 	const float tileSize,
+	std_dims& outDims,
 	std::list<static_geometry>& outList,
-	std::list<static_geometry>& outLakeList)
+	std::list<static_geometry>& outLakeList,
+	unsigned int**& ppoutMap)
 {
 	std::ifstream f;
 	f.open(lvlFilename.c_str());
@@ -148,6 +151,17 @@ void IOManager::GetAllBodiesFromLevel(
 	/* Level Description parsing */
 	std::getline(f, line);
 	assert(!line.compare(LEVEL_DESC_SWITCH));
+
+	/* Level rows and cols extraction */
+	std::getline(f, line);
+	std::vector<str> lvlRowsCols = split(line, VALUE_SEP);
+	outDims.x = static_cast<uint>(std::stoi(lvlRowsCols[0]));
+	outDims.y = static_cast<uint>(std::stoi(lvlRowsCols[1]));
+	ppoutMap = new uint*[outDims.y];
+	for (size_t i = 0; i < outDims.y; ++i) ppoutMap[i] = new uint[outDims.x];
+	size_t rowCounter = 0;
+
+	/* World space level dimensions */;
 	std::getline(f, line);
 	std::vector<str> lvlDesc = split(line, VALUE_SEP);
 	float maxWidth = std::stof(lvlDesc[0]);
@@ -157,16 +171,27 @@ void IOManager::GetAllBodiesFromLevel(
 	std::getline(f, line);
 	assert(!line.compare(LEVEL_COMP_SWITCH));
 
-	std_pos posCounter = {};
 	bool houseSwitch = false;
-
+	bool levelRepSwitch = false;
+	
 	for (; std::getline(f, line);)
 	{
 		/* End of game object description, start of house description */
 		if (!line.compare(LEVEL_HOUSE_SWITCH)) { houseSwitch = true; continue; }
+		else if (!line.compare(LEVEL_REP_SWITCH)) { levelRepSwitch = true; houseSwitch = false; continue; }
+
+		if (levelRepSwitch)
+		{
+			std::vector<str> repRow = split(line, ' ');
+			for (size_t x = 0; x < outDims.x; ++x)
+			{
+				ppoutMap[rowCounter][x] = static_cast<uint>(std::stoi(repRow[x]));
+			}
+			++rowCounter;
+		}
 
 		/* House insertion */
-		if (houseSwitch)
+		else if (houseSwitch)
 		{
 			std::vector<str> houseComps = split(line, LEVEL_COMP_SEP);
 			std::vector<str> houseLoc = split(houseComps[1], VALUE_SEP);
@@ -189,18 +214,18 @@ void IOManager::GetAllBodiesFromLevel(
 				iter != filenames.end();
 				++iter)
 			{
-				/* Building or house map areas which will be covered last */
-				if (!iter->compare(LEVEL_IGNORE_DIRECTIVE))
-				{
-					posCounter.x -= tileSize;
-					continue;
-				}
+				/* Building or house map areas which will be covered seperately */
+				if (!iter->compare(LEVEL_IGNORE_DIRECTIVE))	continue;
 
 				/* Component path comprehension */
-				str objectFilename = split(*iter, FILE_PATH_SEP).back();
-				str objectName = split(objectFilename, FILE_EXT_SEP).front();
+				str objectName = split(*iter, NAME_POS_SEP).front();
+				str objectDetails = split(*iter, NAME_POS_SEP).back();
 				str objectLastName = split(objectName, FILE_NAME_SEP).back();
 				std::vector<str> nameComps = split(objectName, FILE_NAME_SEP);
+
+				std_pos objPos;
+				objPos.x = std::stof(split(objectDetails, VALUE_SEP)[0]);
+				objPos.z = std::stof(split(objectDetails, VALUE_SEP)[1]);
 
 				/* Next level game object creation */
 				Body b; str ori, cornerName;
@@ -252,9 +277,9 @@ void IOManager::GetAllBodiesFromLevel(
 
 					ForceGetBody(newObjectName, b);
 					if (objectLastName.compare(LEVEL_FLOOR_NAME) == 0 ||
-						objectLastName.compare(LEVEL_WILD_NAME) == 0) posCounter.y = -tileSize / 2;
-					else if (objectLastName.compare(LEVEL_SHORT_NAME) == 0) posCounter.y = LEVEL_SHORT_HEIGHT;
-					else posCounter.y = 0.0f;
+						objectLastName.compare(LEVEL_WILD_NAME) == 0) objPos.y = -tileSize / 2;
+					else if (objectLastName.compare(LEVEL_SHORT_NAME) == 0) objPos.y = LEVEL_SHORT_HEIGHT;
+					else objPos.y = 0.0f;
 					std_rot rot = {};
 
 					/* Here we configure the rotation struct passed in the final result according to the initial
@@ -264,7 +289,7 @@ void IOManager::GetAllBodiesFromLevel(
 					else if (!ori.compare(LEVEL_ORI_BOTRIGHT)) rot.rotY = static_cast<float>(D3DX_PI);
 					else if (!ori.compare(LEVEL_ORI_BOTLEFT)) rot.rotY = static_cast<float>(D3DX_PI * 1.5f);
 
-					static_geometry res{b, posCounter, rot};
+					static_geometry res{b, objPos, rot};
 					outList.push_back(res);
 				}
 				/* No special case, load the object normally */
@@ -272,11 +297,11 @@ void IOManager::GetAllBodiesFromLevel(
 				{
 					ForceGetBody(objectName, b);
 					if (objectLastName.compare(LEVEL_FLOOR_NAME) == 0 ||
-						objectLastName.compare(LEVEL_WILD_NAME) == 0) posCounter.y = -tileSize / 2;
-					else if (objectLastName.compare(LEVEL_SHORT_NAME) == 0) posCounter.y = LEVEL_SHORT_HEIGHT;
-					else posCounter.y = 0.0f;
+						objectLastName.compare(LEVEL_WILD_NAME) == 0) objPos.y = -tileSize / 2;
+					else if (objectLastName.compare(LEVEL_SHORT_NAME) == 0) objPos.y = LEVEL_SHORT_HEIGHT;
+					else objPos.y = 0.0f;
 					std_rot rot = {};
-					static_geometry res{b, posCounter, rot};
+					static_geometry res{b, objPos, rot};
 					outList.push_back(res);
 				}
 				
@@ -285,9 +310,9 @@ void IOManager::GetAllBodiesFromLevel(
 				{
 					Body lakePiece;
 					ForceGetBody(LEVEL_LAKE_PIECE_FULL_NAME, lakePiece);
-					posCounter.y = LEVEL_CLOSER;
+					objPos.y = LEVEL_CLOSER;
 					std_rot rot = {};
-					static_geometry lakeRes{lakePiece, posCounter, rot};
+					static_geometry lakeRes{lakePiece, objPos, rot};
 					outLakeList.push_back(lakeRes);
 
 					/* Check for side edges of lake pieces (if so to avoid graphical glitches
@@ -300,27 +325,22 @@ void IOManager::GetAllBodiesFromLevel(
 						Body b; 
 						ForceGetBody(LEVEL_FILL_OBJECT_FULL_NAME, b);
 						std_pos pos;
-						pos.x = isLakeLeft ? posCounter.x + tileSize : posCounter.x - tileSize;
+						pos.x = isLakeLeft ? objPos.x + tileSize : objPos.x - tileSize;
 						pos.y = LEVEL_CLOSEST;
-						pos.z = posCounter.z;
+						pos.z = objPos.z;
 						std_rot rot = {};
 						static_geometry res{b, pos, rot};
 						outList.push_back(res);
 					}
 				}
-
-				/* Horizontal position-cursor advance */
-				posCounter.x -= tileSize;
 			}
-			posCounter.x = 0.0f;
-			posCounter.z += tileSize;
 		}		
 	}
-
+	
 	/* Level filler piece creation (for empty or transparent areas) */
 	Body uniFloor;
 	ForceGetBody(LEVEL_FILL_OBJECT_FULL_NAME, uniFloor);
-	uniFloor.setCustomDims({maxWidth, 1.0f, maxDepth});
+	uniFloor.setDimensions({maxWidth, 1.0f, maxDepth});
 	std_pos uniFloorPos{
 		-maxWidth / 2 + tileSize / 2,
 		 LEVEL_FURTHER,

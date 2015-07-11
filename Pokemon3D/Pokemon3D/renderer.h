@@ -45,12 +45,16 @@ public:
 		const std_pos& pos,
 		const std_rot& rot,
 		Body& body);
-	void PrepareFrame(const D3DXMATRIX& currView, const D3DXVECTOR4& currCamPos);
+	void PrepareFrame(const D3DXMATRIX& currView,
+					  const D3DXMATRIX& currProj,
+					  const D3DXVECTOR4& currCamPos,
+					  const Camera::Frustum& currCamFrustum);
 	void CompleteFrame();
 
 private:
 	bool PreInitialization(const HWND& hWindow, uint& outrrNum, uint& outrrDen);
 	bool CoreInitialization(const HWND& hWindow, const uint rrNum, const uint rrDen);
+	bool isVisible(const Body& b, const std_pos& pos);
 	bool ShaderInitialization();
 	bool LayoutInitialization();
 	void ChangeActiveLayout(const ShaderType shader);
@@ -66,7 +70,9 @@ private:
 	comptr<ID3D11BlendState> mBlendState;
 	comptr<ID3D11InputLayout> mGlobalDefaultLayout;
 	comptr<ID3D11InputLayout> mGlobalHUDLayout;
-
+	comptr<ID3D11RasterizerState> mRastState;
+	comptr<ID3D11SamplerState> mSampleState;	
+		
 	uint mVideoCardMemory;
 	
 	std::string mVideoCardName;
@@ -76,5 +82,7 @@ private:
 	std::map<ShaderType, comptr<ID3D11InputLayout>> mShaderLayouts;
 	
 	D3DXMATRIX mCurrView;
+	D3DXMATRIX mCurrProj;
 	D3DXVECTOR4 mCurrCamPosition;
+	Camera::Frustum mCurrCamFrustum;
 };

@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <array>
 
 class IOManager
 {
@@ -25,6 +26,8 @@ public:
 		std_rot rot;
 	} static_geometry;
 
+	typedef struct Dims2D { uint x, y; } std_dims;
+
 	typedef std::string str;
 	typedef std::list<std::string> str_list;
 	typedef str_list::const_iterator str_list_iter;
@@ -44,8 +47,10 @@ public:
 	void GetAllBodiesFromLevel(
 		const str& lvlFilename,
 		const float tileSize,
+		std_dims& outDims,
 		std::list<static_geometry>& outList,
-		std::list<static_geometry>& outLakeList);
+		std::list<static_geometry>& outLakeList,
+		unsigned int**& ppoutMap);
 
 	/* Bitmap image methods */
 	void ForceGetBmp(const str& id, Bitmap& outBmp);
@@ -66,7 +71,8 @@ private:
 	static const char FILE_EXT_SEP = '.';
 	static const char FILE_NAME_SEP = '_';
 	static const char VALUE_SEP = ',';
-	
+	static const char NAME_POS_SEP = ':';
+
 	sptr<Renderer> mRenderer;
 	std::map<str, Body> mPrelBodies;
 	std::map<str, Bitmap> mPrelBitmaps;

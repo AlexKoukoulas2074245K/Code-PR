@@ -1,4 +1,6 @@
 #include "renderer.h"
+#define WIC_TEX
+#define FRUSTUM_CULLING
 
 Renderer::Renderer(){}
 Renderer::~Renderer(){}
@@ -17,12 +19,17 @@ bool Renderer::Initialize(const HWND hWindow)
 
 void Renderer::PrepareFrame(
 	const D3DXMATRIX& currView,
-	const D3DXVECTOR4& currCamPos)
+	const D3DXMATRIX& currProj,
+	const D3DXVECTOR4& currCamPos,
+	const Camera::Frustum& currCamFrustum)
 {
 	mDevcon->ClearRenderTargetView(mBackBuffer.Get(), d3dconst::BG_COLOR);
 	mDevcon->ClearDepthStencilView(mDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	
 	mCurrView = currView;
+	mCurrProj = currProj;
 	mCurrCamPosition = currCamPos;
+	mCurrCamFrustum = currCamFrustum;
 }
 
 void Renderer::CompleteFrame()
@@ -44,38 +51,39 @@ void Renderer::RenderBody(
 	const std_rot& rot,
 	Body& body)
 {
-	if (!body.isReady()) { LOGLN("Body rejected"); return; }
+	if (!body.isReady()
+#ifdef FRUSTUM_CULLING
+		|| !isVisible(body, pos)
+#endif
+		) return;
+
 	if (mActiveShaderType != shader) ChangeActiveLayout(shader);
-	
+
 	UINT stride = sizeof(Body::Vertex);
 	UINT offset = 0;
 	mDevcon->IASetVertexBuffers(0, 1, body.modVertexBuffer().GetAddressOf(), &stride, &offset);
 	mDevcon->IASetIndexBuffer(body.immIndexBuffer().Get(), d3dconst::INDEX_FORMAT, 0U);
 	
-	D3DXMATRIX matProjection;
-	D3DXMatrixPerspectiveFovLH(
-		&matProjection,
-		(FLOAT) XMConvertToRadians(45),
-		(FLOAT) window::WIDTH / (FLOAT) window::HEIGHT,
-		0.1f,
-		40.0f);
 	
 	D3DXMATRIX matTrans, matRotX, matRotY, matRotZ, matScale;
 	D3DXMatrixTranslation(&matTrans, pos.x, pos.y, pos.z);
 	D3DXMatrixRotationX(&matRotX, rot.rotX);
 	D3DXMatrixRotationY(&matRotY, rot.rotY);
 	D3DXMatrixRotationZ(&matRotZ, rot.rotZ);
+
+	Body::body_dims bodyInDims = body.getInitDims();
+	Body::body_dims bodyAcDims = body.getDimensions();
 	D3DXMatrixScaling(
 		&matScale,
-		body.getCustomDims().maxWidth / body.getDimensions().maxWidth,
+		bodyAcDims.maxWidth / bodyInDims.maxWidth,
 		1.0f,
-		body.getCustomDims().maxDepth / body.getDimensions().maxDepth);
+		bodyAcDims.maxDepth / bodyInDims.maxDepth);
 
 	D3DXMATRIX matFinal = matScale *
 						  matRotX * matRotY * matRotZ * 
 						  matTrans *
 						  mCurrView *
-						  matProjection;
+						  mCurrProj;
 
 	Shader::MatrixBuffer mb = {};
 	mb.camPosition = mCurrCamPosition;
@@ -91,7 +99,6 @@ void Renderer::RenderBody(
 	mDevcon->DrawIndexed(body.getIndexCount(), 0, 0);
 }
 
-#define WIC_TEX
 bool Renderer::PrepareBody(Body& body, const ShaderType shader)
 {
 	comptr<ID3D11Buffer>& bodyVB = body.modVertexBuffer();
@@ -144,7 +151,7 @@ bool Renderer::PrepareBody(Body& body, const ShaderType shader)
 #else
 		HR(D3DX11CreateShaderResourceViewFromFile(
 			mDevice.Get(),
-			toload.front(),
+			toload.front().c_str(),
 			NULL, 
 			NULL,
 			&texture.modTexture(), 
@@ -261,10 +268,8 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	dbd.Format = d3dconst::DEPTH_BUFFER_FORMAT;
 	dbd.SampleDesc.Count = d3dconst::MS_COUNT;
 	dbd.SampleDesc.Quality = d3dconst::MS_QUAL;
-	dbd.Usage = D3D11_USAGE_DEFAULT;
 	dbd.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	dbd.CPUAccessFlags = 0;
-	dbd.MipLevels = 0;
+	
 	HR(mDevice->CreateTexture2D(&dbd, NULL, &mDepthBuffer));
 	
 	/* Create and set the custom depth Stencil State */
@@ -310,6 +315,39 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	bd.AlphaToCoverageEnable = TRUE;
 	HR(mDevice->CreateBlendState(&bd, &mBlendState));
 	mDevcon->OMSetBlendState(mBlendState.Get(), 0, 0xFFFFFFFF);
+
+	D3D11_SAMPLER_DESC sd;
+	sd.Filter = D3D11_FILTER_ANISOTROPIC;
+	sd.MaxAnisotropy = 8;
+	sd.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.BorderColor[0] = 0.0f;
+	sd.BorderColor[1] = 0.0f;
+	sd.BorderColor[2] = 0.0f;
+	sd.BorderColor[3] = 0.0f;
+	sd.MinLOD = 0.0f;
+	sd.MaxLOD = FLT_MAX;
+	sd.MipLODBias = 0.0f;
+
+	mDevice->CreateSamplerState(&sd, &mSampleState);
+	mDevcon->PSSetSamplers(0, 1, mSampleState.GetAddressOf());
+
+	/* Create the custom rasterizer state */
+	D3D11_RASTERIZER_DESC rastDesc = {};
+	rastDesc.FillMode = D3D11_FILL_SOLID;
+	rastDesc.CullMode = D3D11_CULL_BACK;
+	rastDesc.FrontCounterClockwise = FALSE;
+	rastDesc.DepthClipEnable = TRUE;
+	rastDesc.ScissorEnable = FALSE;
+	rastDesc.AntialiasedLineEnable = TRUE;
+	rastDesc.MultisampleEnable = TRUE;
+	rastDesc.DepthBias = 0;
+	rastDesc.DepthBiasClamp = 0.0f;
+	rastDesc.SlopeScaledDepthBias = 0.0f;
+
+	mDevice->CreateRasterizerState(&rastDesc, &mRastState);
+	mDevcon->RSSetState(mRastState.Get());
 
 	/* Create and set the viewport */
 	D3D11_VIEWPORT viewport = {};
@@ -379,6 +417,24 @@ bool Renderer::LayoutInitialization()
 
 	mShaderLayouts[ShaderType::DEFAULT] = mGlobalDefaultLayout;
 	mShaderLayouts[ShaderType::HUD] = mGlobalHUDLayout;
+
+	return true;
+}
+
+bool Renderer::isVisible(const Body& b, const std_pos& pos)
+{
+	Body::body_dims bdims = b.getDimensions();
+	float collSphereRad = util::maxf(bdims.maxDepth,
+						  util::maxf(bdims.maxHeight, bdims.maxWidth));
+	
+	for (size_t i = 0;
+	     i < Camera::CAM_FRUST_NSIDES;
+		 ++i)
+	{
+		if (D3DXPlaneDotCoord(
+			&mCurrCamFrustum.planes[i],
+			&D3DXVECTOR3{pos.x, pos.y, pos.z}) < -collSphereRad) return false;
+	}
 
 	return true;
 }

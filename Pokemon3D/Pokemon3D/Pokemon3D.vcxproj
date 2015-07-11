@@ -80,6 +80,7 @@
     <ClCompile Include="ioutils.cpp" />
     <ClCompile Include="level.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="player.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="shader.cpp" />
   </ItemGroup>
@@ -100,6 +101,7 @@
     <ClInclude Include="iomanager.h" />
     <ClInclude Include="ioutils.h" />
     <ClInclude Include="level.h" />
+    <ClInclude Include="player.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="texture.h" />

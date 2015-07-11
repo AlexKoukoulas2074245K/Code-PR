@@ -46,7 +46,7 @@ namespace util
 	{ return std::string(in.begin(), in.end()); }
 	inline std::wstring stringToWString(const std::string in) 
 	{ return std::wstring(in.begin(), in.end()); }
-	
+	inline float maxf(float a, float b){ return a > b ? a : b; }
 	/* Standard LERP */
 	inline bool lerp(const float current,
 				  const float target,
