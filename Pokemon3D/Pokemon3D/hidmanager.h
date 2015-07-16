@@ -1,6 +1,6 @@
 #pragma once
-#include "window.h"
 #include <map>
+#include "window.h"
 
 #define KEY_LEFT   0x00000001
 #define KEY_RIGHT  0x00000002

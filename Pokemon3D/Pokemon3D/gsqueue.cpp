@@ -1,6 +1,21 @@
 #include "gsqueue.h"
 
-GSQueue::GSQueue(): mEmpty(false){ LOGLN("GSQueue constructor called"); }
+#include "renderer.h"
+#include "iomanager.h"
+#include "hidmanager.h"
+#include "fpscounter.h"
+#include "gsplay.h"
+#include "a_gamestate.h"
+
+GSQueue::GSQueue():
+mRenderer(new Renderer),
+mIOManager(new IOManager),
+mHIDManager(new HIDManager),
+mFpsc(new FpsCounter),
+mEmpty(false)
+{
+	LOGLN("GSQueue constructor called"); 
+}
 
 GSQueue::~GSQueue()
 {
@@ -9,10 +24,6 @@ GSQueue::~GSQueue()
 
 bool GSQueue::Initialize(const HWND& hWindow)
 {
-	mRenderer.reset(new Renderer);
-	mIOManager.reset(new IOManager);
-	mHIDManager.reset(new HIDManager);
-
 	/* Initialize the renderer */
 	if (!mRenderer->Initialize(hWindow)) return false;
 	mIOManager->SetRenderer(mRenderer);
@@ -46,7 +57,7 @@ void GSQueue::Update()
 		mEmpty = mStates.empty();
 	}
 	mHIDManager->CompleteFrame();
-	mFpsc.Update();
+	mFpsc->Update();
 }
 
 void GSQueue::Render()

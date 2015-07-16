@@ -1,6 +1,9 @@
+#include "ioutils.h"
+
 #include <fstream>
 #include <sstream>
-#include "ioutils.h"
+
+#include "common.h"
 
 bool LoadOBJFromFile(std::string filename, Body& result)
 {
@@ -127,10 +130,10 @@ bool LoadOBJFromFile(std::string filename, Body& result)
 		resultIndices.push_back(i);
 	}
 	
-	Body::Dimensions resultDimensions;
-	resultDimensions.maxDepth = std::abs(maxZ - minZ);
-	resultDimensions.maxHeight = std::abs(maxY - minY);
-	resultDimensions.maxWidth = std::abs(maxX - minX);
+	float3 resultDimensions;
+	resultDimensions.z = std::abs(maxZ - minZ);
+	resultDimensions.y = std::abs(maxY - minY);
+	resultDimensions.x = std::abs(maxX - minX);
 	
 	result.setVertices(resultVertices);
 	result.setIndices(resultIndices);
@@ -155,31 +158,31 @@ bool LoadBMPFromFile(std::string filename, Bitmap& outBmp)
 	fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
 
 	Bitmap::rgb_dat resultData;
-	Bitmap::rgb_dims resultDims;
+	uint2 resultDims;
 
 	// extract image height and width from header
-	resultDims.width = *(int*) &info[18];
-	resultDims.height = *(int*) &info[22];
-	int row_padded = (resultDims.width * 3 + 3) & (~3);
+	resultDims.x = *(int*) &info[18];
+	resultDims.y = *(int*) &info[22];
+	int row_padded = (resultDims.x * 3 + 3) & (~3);
 	
 	unsigned char* data = new unsigned char[row_padded];
 	unsigned char tmp;
 
 	
-	for (int i = 0; i < resultDims.height; i++)
+	for (uint i = 0; i < resultDims.y; i++)
 	{
 		fread(data, sizeof(unsigned char), row_padded, f);
-		for (int j = 0; j < resultDims.width * 3; j += 3)
+		for (uint j = 0; j < resultDims.x * 3; j += 3)
 		{
 			// Convert (B, G, R) to (R, G, B)
 			tmp = data[j];
 			data[j] = data[j + 2];
 			data[j + 2] = tmp;
 
-			Bitmap::RGBTrip rgb;
-			rgb.r = (int) data[j];
-			rgb.g = (int) data[j + 1];
-			rgb.b = (int) data[j + 2];
+			int3 rgb;
+			rgb.x = (int) data[j];
+			rgb.y = (int) data[j + 1];
+			rgb.z = (int) data[j + 2];
 			resultData.push_back(rgb);
 		}
 	}

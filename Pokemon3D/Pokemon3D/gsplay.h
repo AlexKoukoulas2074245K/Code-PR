@@ -1,10 +1,8 @@
 #pragma once
-
 #include "a_gamestate.h"
-#include "body.h"
-#include "level.h"
-#include "player.h"
 
+class Player;
+class Level;
 class GSPlay: public GameState
 {
 public:
@@ -15,6 +13,7 @@ public:
 	void Render();
 
 private:
-	Player mPlayer;
-	Level mLevel;
+	static const vec3f PLR_START_LOC;
+	sptr<Player> mPlayer;
+	sptr<Level> mLevel;
 };

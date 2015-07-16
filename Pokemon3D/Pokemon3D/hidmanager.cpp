@@ -1,5 +1,4 @@
 #include "hidmanager.h"
-
 #define VK_Z 0x5A
 #define VK_X 0x58
 
@@ -27,4 +26,4 @@ void HIDManager::UpdateState(const MSG& msg)
 void HIDManager::CompleteFrame(){ mPrevState = mCurrState; }
 bool HIDManager::KeyDown(const key_t key){ return (mCurrState & key) != 0; }
 bool HIDManager::KeyUp(const key_t key){ return (!(mCurrState & key)) == 0; }
-bool HIDManager::KeyTapped(const key_t key){ return (mCurrState & key) != 0 && (!(mPrevState & key)) == 0; }
+bool HIDManager::KeyTapped(const key_t key){ return (mCurrState & key) != 0 && (mPrevState & key) == 0; }

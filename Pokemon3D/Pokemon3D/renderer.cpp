@@ -18,9 +18,9 @@ bool Renderer::Initialize(const HWND hWindow)
 }
 
 void Renderer::PrepareFrame(
-	const D3DXMATRIX& currView,
-	const D3DXMATRIX& currProj,
-	const D3DXVECTOR4& currCamPos,
+	const mat4x4& currView,
+	const mat4x4& currProj,
+	const vec4f& currCamPos,
 	const Camera::Frustum& currCamFrustum)
 {
 	mDevcon->ClearRenderTargetView(mBackBuffer.Get(), d3dconst::BG_COLOR);
@@ -47,8 +47,8 @@ void Renderer::ChangeActiveLayout(const ShaderType shaderType)
 
 void Renderer::RenderBody(
 	const ShaderType shader,
-	const std_pos& pos,
-	const std_rot& rot,
+	const float3& pos,
+	const float3& rot,
 	Body& body)
 {
 	if (!body.isReady()
@@ -65,19 +65,19 @@ void Renderer::RenderBody(
 	mDevcon->IASetIndexBuffer(body.immIndexBuffer().Get(), d3dconst::INDEX_FORMAT, 0U);
 	
 	
-	D3DXMATRIX matTrans, matRotX, matRotY, matRotZ, matScale;
+	mat4x4 matTrans, matRotX, matRotY, matRotZ, matScale;
 	D3DXMatrixTranslation(&matTrans, pos.x, pos.y, pos.z);
-	D3DXMatrixRotationX(&matRotX, rot.rotX);
-	D3DXMatrixRotationY(&matRotY, rot.rotY);
-	D3DXMatrixRotationZ(&matRotZ, rot.rotZ);
+	D3DXMatrixRotationX(&matRotX, rot.x);
+	D3DXMatrixRotationY(&matRotY, rot.y);
+	D3DXMatrixRotationZ(&matRotZ, rot.z);
 
-	Body::body_dims bodyInDims = body.getInitDims();
-	Body::body_dims bodyAcDims = body.getDimensions();
+	float3 bodyInDims = body.getInitDims();
+	float3 bodyAcDims = body.getDimensions();
 	D3DXMatrixScaling(
 		&matScale,
-		bodyAcDims.maxWidth / bodyInDims.maxWidth,
+		bodyAcDims.x / bodyInDims.x,
 		1.0f,
-		bodyAcDims.maxDepth / bodyInDims.maxDepth);
+		bodyAcDims.z / bodyInDims.z);
 
 	D3DXMATRIX matFinal = matScale *
 						  matRotX * matRotY * matRotZ * 
@@ -421,11 +421,11 @@ bool Renderer::LayoutInitialization()
 	return true;
 }
 
-bool Renderer::isVisible(const Body& b, const std_pos& pos)
+bool Renderer::isVisible(const Body& b, const float3& pos)
 {
-	Body::body_dims bdims = b.getDimensions();
-	float collSphereRad = util::maxf(bdims.maxDepth,
-						  util::maxf(bdims.maxHeight, bdims.maxWidth));
+	float3 bdims = b.getDimensions();
+	float collSphereRad = util::maxf(bdims.z,
+						  util::maxf(bdims.y, bdims.x));
 	
 	for (size_t i = 0;
 	     i < Camera::CAM_FRUST_NSIDES;
@@ -433,7 +433,7 @@ bool Renderer::isVisible(const Body& b, const std_pos& pos)
 	{
 		if (D3DXPlaneDotCoord(
 			&mCurrCamFrustum.planes[i],
-			&D3DXVECTOR3{pos.x, pos.y, pos.z}) < -collSphereRad) return false;
+			&vec3f{pos.x, pos.y, pos.z}) < -collSphereRad) return false;
 	}
 
 	return true;

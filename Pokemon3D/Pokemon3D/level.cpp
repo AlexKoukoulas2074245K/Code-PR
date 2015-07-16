@@ -72,18 +72,27 @@ void Level::Render()
 	}
 }
 
-void Level::GetCoords(const level_pos& inPos, level_coords& outCoords) const
+bool Level::ValidCoords(const uint x, const uint y) const
 {
-	outCoords = {(uint) (-inPos.x / TILE_SIZE), (uint) (inPos.z / TILE_SIZE)};
+	return x >= 0 &&
+		   y >= 0 &&
+		   x < mLevelDims.x &&
+		   y < mLevelDims.y && 
+		   GetTileType(x, y);
 }
 
-void Level::GetPosition(const level_coords& inCoords, level_pos& outPosition) const
+uint2 Level::GetCoords(const vec3f& inPos) const
 {
-	outPosition.x = inCoords.x * TILE_SIZE;
-	outPosition.y = inCoords.y * TILE_SIZE;
+	return uint2{(uint) (-inPos.x / TILE_SIZE), (uint) (inPos.z / TILE_SIZE)};
 }
 
-uint Level::GetTileType(const level_coords& inCoords) const
+vec3f Level::GetPosition(const uint2& inCoords, const float y) const
+{
+	return vec3f{inCoords.x * TILE_SIZE, y, inCoords.y * TILE_SIZE};
+}
+
+uint Level::GetTileType(const uint x, const uint y) const { return GetTileType(uint2{x, y});}
+uint Level::GetTileType(const uint2& inCoords) const
 {
 	assert(inCoords.x >= 0);
 	assert(inCoords.y >= 0);
@@ -92,10 +101,8 @@ uint Level::GetTileType(const level_coords& inCoords) const
 	return mLevelMap[inCoords.y][inCoords.x];
 }
 
-uint Level::GetTileType(const level_pos& inPos) const
+uint Level::GetTileType(const vec3f& inPos) const
 {
-	level_coords coords = {};
-	GetCoords(inPos, coords);
-	return GetTileType(coords);
+	return GetTileType(GetCoords(inPos));
 }
 

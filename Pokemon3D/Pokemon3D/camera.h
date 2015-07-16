@@ -1,5 +1,6 @@
 #pragma once
 #include "d3dcommon.h"
+#include "pokedef.h"
 #include <array>
 #include <map>
 
@@ -30,36 +31,36 @@ public:
 		D3DXPLANE planes[6];
 	};
 
-	Camera(const D3DXVECTOR3& cameraPos);
+	Camera(const vec3f& cameraPos);
 	Camera();
 	~Camera();
 	
-	void Move(const cam_dir& dir, const float mag);
-	void Look(const cam_dir& dir, const float mag);
+	void MoveTo(const float targetPos);
 	void Turn(const cam_dir& dir);
 	void Update();
 
-	void getCameraFrustum(const D3DXMATRIX& matView,
-						  D3DXMATRIX matProj,
+	void getCameraFrustum(const mat4x4& matView,
+						  mat4x4 matProj,
 						  Frustum& outFrustum) const;
 
-	const D3DXMATRIX& getViewMatrix();
-	const D3DXMATRIX& getProjMatrix() const { return mProjMatrix; }
-	D3DXVECTOR4 getPosition() const; 
-	cam_ori getOrientation() const;
+	const mat4x4& getViewMatrix();
+	const mat4x4& getProjMatrix() const { return mProjMatrix; }
+	vec4f getPosition() const { return vec4f{mPosition.x, mPosition.y, mPosition.z, 1.0f}; }
+	vec3f getPosition3() const { return mPosition; }
+	cam_ori getOrientation() const { return mOriMap.at(mCurrAngleIndex); }
+	bool getMoving() const { return mMoving; }
+	bool getTurning() const { return mTurning; }
 
-	void setPosition(const D3DXVECTOR3& pos) { mPosition = pos; }
+	void setPosition(const vec3f& pos) { mPosition = pos; }
+	void setPosition(const float x, const float y, const float z) { mPosition = vec3f{x, y, z}; }
 
 private:
 	std::map<size_t, Orientation> mOriMap;
-	D3DXMATRIX mViewMatrix;
-	D3DXMATRIX mProjMatrix;
-	D3DXVECTOR3 mPosition; 
-	D3DXVECTOR3 mUp, mLook, mRight;
-	float mYaw, mPitch, mRoll;
-	std::array<float, 6> mValidAngles;
-	float mTargetYaw;
-	bool mTurning;
+	mat4x4 mViewMatrix, mProjMatrix;
+	vec3f mPosition, mUp, mLook, mRight;
+	float mYaw, mPitch, mRoll, mTargetYaw, mTargetPos;
+	bool mTurning, mMoving;
 	size_t mCurrAngleIndex;
+	std::array<float, 6> mValidAngles;
 
 };

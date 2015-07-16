@@ -1,15 +1,19 @@
 #include "iomanager.h"
+
+#include <fstream>
+#include <vector>
+
 #include "common.h"
 #include "ioutils.h"
 #include "window.h"
-#include <fstream>
-#include <vector>
+#include "renderer.h"
 
 #define LEVEL_IGNORE_DIRECTIVE "IGNORE"
 #define LEVEL_FURTHER - tileSize/2 - 0.05f
 #define LEVEL_CLOSER  - tileSize/2 - 0.005f
 #define LEVEL_CLOSEST  - tileSize/2 - 0.0005f
 #define LEVEL_SHORT_HEIGHT -0.6f
+#define LEVEL_HOUSE_PADDING 0.6f
 
 #define LEVEL_FLOOR_NAME "floor"
 #define LEVEL_WILD_NAME "wild"
@@ -138,7 +142,7 @@ void IOManager::LoadMultipleBodies(const str& directory)
 void IOManager::GetAllBodiesFromLevel(
 	const str& lvlFilename,
 	const float tileSize,
-	std_dims& outDims,
+	uint3& outDims,
 	std::list<static_geometry>& outList,
 	std::list<static_geometry>& outLakeList,
 	unsigned int**& ppoutMap)
@@ -201,8 +205,8 @@ void IOManager::GetAllBodiesFromLevel(
 			ForceGetBody(houseName, b);
 			float houseX = std::stof(houseLoc[0]);
 			float houseZ = std::stof(houseLoc[1]);
-			std_rot rot = {};
-			static_geometry res{b, {houseX, tileSize / 2, houseZ}, rot};
+			float3 rot = {};
+			static_geometry res{b, {houseX + 1.0f, tileSize / 2, houseZ}, rot};
 			outList.push_back(res);
 			continue;
 		}
@@ -223,7 +227,7 @@ void IOManager::GetAllBodiesFromLevel(
 				str objectLastName = split(objectName, FILE_NAME_SEP).back();
 				std::vector<str> nameComps = split(objectName, FILE_NAME_SEP);
 
-				std_pos objPos;
+				float3 objPos;
 				objPos.x = std::stof(split(objectDetails, VALUE_SEP)[0]);
 				objPos.z = std::stof(split(objectDetails, VALUE_SEP)[1]);
 
@@ -280,14 +284,14 @@ void IOManager::GetAllBodiesFromLevel(
 						objectLastName.compare(LEVEL_WILD_NAME) == 0) objPos.y = -tileSize / 2;
 					else if (objectLastName.compare(LEVEL_SHORT_NAME) == 0) objPos.y = LEVEL_SHORT_HEIGHT;
 					else objPos.y = 0.0f;
-					std_rot rot = {};
+					float3 rot = {};
 
 					/* Here we configure the rotation struct passed in the final result according to the initial
 					object's orientation info */
-					if (!ori.compare(LEVEL_ORI_RIGHT) || !ori.compare(LEVEL_ORI_BOTTOM)) rot.rotY = static_cast<float>(D3DX_PI);
-					else if (!ori.compare(LEVEL_ORI_TOPRIGHT)) rot.rotY = static_cast<float>(D3DX_PI / 2);
-					else if (!ori.compare(LEVEL_ORI_BOTRIGHT)) rot.rotY = static_cast<float>(D3DX_PI);
-					else if (!ori.compare(LEVEL_ORI_BOTLEFT)) rot.rotY = static_cast<float>(D3DX_PI * 1.5f);
+					if (!ori.compare(LEVEL_ORI_RIGHT) || !ori.compare(LEVEL_ORI_BOTTOM)) rot.y = static_cast<float>(D3DX_PI);
+					else if (!ori.compare(LEVEL_ORI_TOPRIGHT)) rot.y = static_cast<float>(D3DX_PI / 2);
+					else if (!ori.compare(LEVEL_ORI_BOTRIGHT)) rot.y = static_cast<float>(D3DX_PI);
+					else if (!ori.compare(LEVEL_ORI_BOTLEFT)) rot.y = static_cast<float>(D3DX_PI * 1.5f);
 
 					static_geometry res{b, objPos, rot};
 					outList.push_back(res);
@@ -300,7 +304,7 @@ void IOManager::GetAllBodiesFromLevel(
 						objectLastName.compare(LEVEL_WILD_NAME) == 0) objPos.y = -tileSize / 2;
 					else if (objectLastName.compare(LEVEL_SHORT_NAME) == 0) objPos.y = LEVEL_SHORT_HEIGHT;
 					else objPos.y = 0.0f;
-					std_rot rot = {};
+					float3 rot = {};
 					static_geometry res{b, objPos, rot};
 					outList.push_back(res);
 				}
@@ -311,7 +315,7 @@ void IOManager::GetAllBodiesFromLevel(
 					Body lakePiece;
 					ForceGetBody(LEVEL_LAKE_PIECE_FULL_NAME, lakePiece);
 					objPos.y = LEVEL_CLOSER;
-					std_rot rot = {};
+					float3 rot = {};
 					static_geometry lakeRes{lakePiece, objPos, rot};
 					outLakeList.push_back(lakeRes);
 
@@ -324,11 +328,11 @@ void IOManager::GetAllBodiesFromLevel(
 					{
 						Body b; 
 						ForceGetBody(LEVEL_FILL_OBJECT_FULL_NAME, b);
-						std_pos pos;
+						float3 pos;
 						pos.x = isLakeLeft ? objPos.x + tileSize : objPos.x - tileSize;
 						pos.y = LEVEL_CLOSEST;
 						pos.z = objPos.z;
-						std_rot rot = {};
+						float3 rot = {};
 						static_geometry res{b, pos, rot};
 						outList.push_back(res);
 					}
@@ -341,11 +345,11 @@ void IOManager::GetAllBodiesFromLevel(
 	Body uniFloor;
 	ForceGetBody(LEVEL_FILL_OBJECT_FULL_NAME, uniFloor);
 	uniFloor.setDimensions({maxWidth, 1.0f, maxDepth});
-	std_pos uniFloorPos{
+	float3 uniFloorPos{
 		-maxWidth / 2 + tileSize / 2,
 		 LEVEL_FURTHER,
 		 maxDepth / 2 - tileSize / 2};
-	std_rot rot = {};
+	float3 rot = {};
 	static_geometry res{uniFloor, uniFloorPos, rot};
 	outList.push_back(res);
 

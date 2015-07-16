@@ -1,7 +1,10 @@
 #pragma once
-#include "renderer.h"
-#include "iomanager.h"
-#include "hidmanager.h"
+#include "common.h"
+#include "pokedef.h"
+
+class Renderer;
+class IOManager;
+class HIDManager;
 
 class GameState
 {

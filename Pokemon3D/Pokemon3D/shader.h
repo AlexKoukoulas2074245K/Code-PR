@@ -1,5 +1,6 @@
 #pragma once
 #include "d3dcommon.h"
+#include "pokedef.h"
 #include "common.h"
 
 #define SHADER_PATH std::string("C:/Users/alex/Pictures/projects/pkmnrevo/shaders/")
@@ -10,10 +11,10 @@ public:
 	
 	struct MatrixBuffer
 	{
-		D3DXMATRIX finalMatrix;
-		D3DXMATRIX worldMatrix;
-		D3DXMATRIX rotMatrix;
-		D3DXVECTOR4 camPosition;
+		mat4x4 finalMatrix;
+		mat4x4 worldMatrix;
+		mat4x4 rotMatrix;
+		vec4f camPosition;
 	};
 
 	Shader();

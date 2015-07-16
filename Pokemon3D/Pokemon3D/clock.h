@@ -1,5 +1,4 @@
 #pragma once
-#include "window.h"
 
 class Clock
 {

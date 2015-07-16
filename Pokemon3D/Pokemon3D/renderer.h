@@ -2,6 +2,7 @@
 #include "d3dcommon.h"
 #include "ddsloader.h"
 #include "window.h"
+#include "pokedef.h"
 #include "common.h"
 #include "shader.h"
 #include "body.h"
@@ -25,16 +26,6 @@ public:
 		DEFAULT, HUD, NONE
 	};
 
-	typedef struct StdPos
-	{
-		float x, y, z;
-	} std_pos;
-	
-	typedef struct StdRot
-	{
-		float rotX, rotY, rotZ;
-	} std_rot;
-
 	Renderer();
 	~Renderer();
 
@@ -42,19 +33,19 @@ public:
 	bool PrepareBody(Body& body, const ShaderType shader);
 	void RenderBody(
 		const ShaderType shader,
-		const std_pos& pos,
-		const std_rot& rot,
+		const float3& pos,
+		const float3& rot,
 		Body& body);
-	void PrepareFrame(const D3DXMATRIX& currView,
-					  const D3DXMATRIX& currProj,
-					  const D3DXVECTOR4& currCamPos,
+	void PrepareFrame(const mat4x4& currView,
+					  const mat4x4& currProj,
+					  const vec4f& currCamPos,
 					  const Camera::Frustum& currCamFrustum);
 	void CompleteFrame();
 
 private:
 	bool PreInitialization(const HWND& hWindow, uint& outrrNum, uint& outrrDen);
 	bool CoreInitialization(const HWND& hWindow, const uint rrNum, const uint rrDen);
-	bool isVisible(const Body& b, const std_pos& pos);
+	bool isVisible(const Body& b, const float3& pos);
 	bool ShaderInitialization();
 	bool LayoutInitialization();
 	void ChangeActiveLayout(const ShaderType shader);
@@ -81,8 +72,8 @@ private:
 	std::map<ShaderType, std::string> mShaderFiles;
 	std::map<ShaderType, comptr<ID3D11InputLayout>> mShaderLayouts;
 	
-	D3DXMATRIX mCurrView;
-	D3DXMATRIX mCurrProj;
-	D3DXVECTOR4 mCurrCamPosition;
+	mat4x4 mCurrView;
+	mat4x4 mCurrProj;
+	vec4f mCurrCamPosition;
 	Camera::Frustum mCurrCamFrustum;
 };

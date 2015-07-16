@@ -1,12 +1,12 @@
 #pragma once
-
 #include <list>
-#include "a_gamestate.h"
-#include "gsplay.h"
-#include "iomanager.h"
-#include "hidmanager.h"
-#include "fpscounter.h"
+#include "pokedef.h"
 
+class GameState;
+class Renderer;
+class HIDManager;
+class IOManager;
+class FpsCounter;
 class GSQueue
 {
 public:
@@ -31,5 +31,5 @@ private:
 	sptr<Renderer> mRenderer;
 	sptr<IOManager> mIOManager;
 	sptr<HIDManager> mHIDManager;
-	FpsCounter mFpsc;
+	uptr<FpsCounter> mFpsc;
 };

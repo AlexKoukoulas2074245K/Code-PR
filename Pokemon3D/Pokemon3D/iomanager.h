@@ -1,12 +1,13 @@
 #pragma once
-#include "body.h"
-#include "bitmap.h"
-#include "renderer.h"
 #include <map>
 #include <string>
-#include <vector>
-#include <array>
+#include <list>
 
+#include "pokedef.h"
+#include "body.h"
+#include "bitmap.h"
+
+class Renderer;
 class IOManager
 {
 public:
@@ -16,17 +17,12 @@ public:
 		BMP, OBJ, PNG
 	};
 
-	typedef Renderer::std_pos std_pos;
-	typedef Renderer::std_rot std_rot;
-
 	typedef struct StaticGeometry
 	{
 		Body body;
-		std_pos pos;
-		std_rot rot;
+		float3 pos;
+		float3 rot;
 	} static_geometry;
-
-	typedef struct Dims2D { uint x, y; } std_dims;
 
 	typedef std::string str;
 	typedef std::list<std::string> str_list;
@@ -47,7 +43,7 @@ public:
 	void GetAllBodiesFromLevel(
 		const str& lvlFilename,
 		const float tileSize,
-		std_dims& outDims,
+		uint3& outDims,
 		std::list<static_geometry>& outList,
 		std::list<static_geometry>& outLakeList,
 		unsigned int**& ppoutMap);
@@ -57,7 +53,6 @@ public:
 	void GetBmp(const str& id, Bitmap& outBmp);
 	void LoadBmp(const str& id);
 	void LoadMultipleBmps(const str& directory);
-
 
 	void GetAllFilenames(const str& directory, str_list &outFilenames);
 

@@ -5,6 +5,7 @@
 #define VALID_ANGLE_HI 4
 #define N_ANGLES 6
 #define TURN_SPEED 0.1f
+#define MOVE_SPEED 0.1f
 
 const float Camera::ZNEAR = 0.1f;
 const float Camera::ZFAR = 40.0f;
@@ -12,18 +13,20 @@ const float Camera::FOV = (FLOAT) XMConvertToRadians(45);
 const float Camera::ASPECT = (FLOAT) window::WIDTH / (FLOAT) window::HEIGHT;
 const unsigned int Camera::CAM_FRUST_NSIDES = 6U;
 
-Camera::Camera(): Camera(D3DXVECTOR3()){}
-Camera::Camera(const D3DXVECTOR3& position) :
+Camera::Camera(): Camera(vec3f()){}
+Camera::Camera(const vec3f& position) :
 mPosition(position),
-mUp(D3DXVECTOR3(0.0f, 1.0f, 0.0f)),
-mLook(D3DXVECTOR3(0.0f, 0.0f, 1.0f)),
-mRight(D3DXVECTOR3(1.0f, 0.0f, 0.0f)),
+mUp(vec3f(0.0f, 1.0f, 0.0f)),
+mLook(vec3f(0.0f, 0.0f, 1.0f)),
+mRight(vec3f(1.0f, 0.0f, 0.0f)),
 mTurning(false),
+mMoving(false),
 mCurrAngleIndex(1),
 mYaw(0.0f),
 mTargetYaw(mYaw),
 mPitch(0.0f),
-mRoll(0.0f)
+mRoll(0.0f),
+mTargetPos(0.0f)
 {
 	mOriMap[1] = Orientation::SOUTH;
 	mOriMap[2] = Orientation::WEST;
@@ -34,70 +37,12 @@ mRoll(0.0f)
 }
 Camera::~Camera(){}
 
-void Camera::Move(const cam_dir& dir, const float mag)
+void Camera::MoveTo(const float targetPos)
 {
-	if (mTurning) return;
-	switch (dir)
-	{
-		case FORWARD:
-		{
-			mPosition += mLook * mag;
-		}break;
-
-		case BACKWARD:
-		{
-			mPosition += mLook * -mag;
-		}break;
-
-		case RIGHT:
-		{
-			mPosition += mRight * mag;
-		}break;
-
-		case LEFT:
-		{
-			mPosition += mRight * -mag;
-		}break;
-
-		case UP:
-		{
-			mPosition += mUp * mag;
-		}break;
-
-		case DOWN:
-		{
-			mPosition += mUp * -mag;
-		}break;
-	}
+	if (mMoving || mTurning) return;
+	mTargetPos = targetPos;
+	mMoving = true;
 }
-
-void Camera::Look(const cam_dir& dir, const float mag)
-{
-	if (mTurning) return;
-	switch (dir)
-	{
-		case RIGHT:
-		{
-			mYaw += mag;
-		}break;
-
-		case LEFT:
-		{
-			mYaw -= mag;
-		}break;
-
-		case UP:
-		{
-			mPitch -= mag;
-		}break;
-
-		case DOWN:
-		{
-			mPitch += mag;
-		}break;
-	}
-}
-
 void Camera::Update()
 {
 	if (mTurning && util::lerp(mYaw, mTargetYaw, TURN_SPEED, mYaw))
@@ -106,11 +51,31 @@ void Camera::Update()
 		mYaw = mValidAngles[mCurrAngleIndex];
 		mTargetYaw = mYaw;
 	}
+	else if (mMoving)
+	{
+		mPosition += mLook * MOVE_SPEED;
+		if (mOriMap[mCurrAngleIndex] == NORTH)
+		{
+			if (mPosition.z <= mTargetPos) { mMoving = false; mPosition.z = mTargetPos; }
+		}
+		else if (mOriMap[mCurrAngleIndex] == SOUTH)
+		{		
+			if (mPosition.z >= mTargetPos) { mMoving = false; mPosition.z = mTargetPos; }
+		}
+		else if (mOriMap[mCurrAngleIndex] == WEST)
+		{
+			if (mPosition.x >= mTargetPos) { mMoving = false; mPosition.x = mTargetPos; }
+		}
+		else
+		{
+			if (mPosition.x <= mTargetPos) { mMoving = false; mPosition.x = mTargetPos; }
+		}
+	}
 }
 
 void Camera::Turn(const cam_dir& dir)
 {
-	if (mTurning) return;
+	if (mTurning || mMoving) return;
 	mTurning = true;
 
 	if (dir == Direction::LEFT)
@@ -126,8 +91,8 @@ void Camera::Turn(const cam_dir& dir)
 }
 
 void Camera::getCameraFrustum(
-	const D3DXMATRIX& matView,
-	D3DXMATRIX matProj,
+	const mat4x4& matView,
+	mat4x4 matProj,
 	Frustum& outFrustum) const
 {
 	outFrustum = {};
@@ -136,7 +101,7 @@ void Camera::getCameraFrustum(
 	matProj._33 = r;
 	matProj._43 = -r * ZNEAR;
 
-	D3DXMATRIX matrix = matView * matProj;
+	mat4x4 matrix = matView * matProj;
 	// Calculate near plane of frustum.
 	outFrustum.planes[0].a = matrix._14 + matrix._13;
 	outFrustum.planes[0].b = matrix._24 + matrix._23;
@@ -180,23 +145,23 @@ void Camera::getCameraFrustum(
 	D3DXPlaneNormalize(&outFrustum.planes[5], &outFrustum.planes[5]);	
 }
 
-const D3DXMATRIX& Camera::getViewMatrix()
+const mat4x4& Camera::getViewMatrix()
 {
-	mUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-	mLook = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
-	mRight = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
+	mUp = vec3f(0.0f, 1.0f, 0.0f);
+	mLook = vec3f(0.0f, 0.0f, 1.0f);
+	mRight = vec3f(1.0f, 0.0f, 0.0f);
 
-	D3DXMATRIX yawMatrix;
+	mat4x4 yawMatrix;
 	D3DXMatrixRotationAxis(&yawMatrix, &mUp, mYaw);
 	D3DXVec3TransformCoord(&mLook, &mLook, &yawMatrix);
 	D3DXVec3TransformCoord(&mRight, &mRight, &yawMatrix);
 
-	D3DXMATRIX pitchMatrix;
+	mat4x4 pitchMatrix;
 	D3DXMatrixRotationAxis(&pitchMatrix, &mRight, mPitch);
 	//D3DXVec3TransformCoord(&mLook, &mLook, &pitchMatrix);
 	D3DXVec3TransformCoord(&mUp, &mUp, &pitchMatrix);
 
-	D3DXMATRIX rollMatrix;
+	mat4x4 rollMatrix;
 	D3DXMatrixRotationAxis(&rollMatrix, &mLook, mRoll);
 	D3DXVec3TransformCoord(&mRight, &mRight, &rollMatrix);
 	D3DXVec3TransformCoord(&mUp, &mUp, &rollMatrix);
@@ -212,14 +177,4 @@ const D3DXMATRIX& Camera::getViewMatrix()
 	mViewMatrix._43 = -D3DXVec3Dot(&mPosition, &mLook);
 
 	return mViewMatrix;
-}
-
-D3DXVECTOR4 Camera::getPosition() const
-{
-	return D3DXVECTOR4(mPosition.x, mPosition.y, mPosition.z, 1.0f); 
-}
-
-Camera::cam_ori Camera::getOrientation() const
-{
-	return mOriMap.at(mCurrAngleIndex); 
 }

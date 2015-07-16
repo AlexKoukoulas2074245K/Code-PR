@@ -1,7 +1,6 @@
 #pragma once
 #include <list>
 #include "body.h"
-#include "common.h"
 #include "renderer.h"
 #include "iomanager.h"
 
@@ -9,20 +8,9 @@ class Level
 {
 public:
 	static const float TILE_SIZE;
-
-	typedef struct LevelPos
-	{
-		float x, y, z;
-	} level_pos;
-
-	typedef struct LevelCoords
-	{
-		uint x, y;
-	} level_coords;
-
 	typedef unsigned int** level_map;
 	typedef IOManager::static_geometry static_object;
-	typedef IOManager::std_dims level_dims;
+	typedef uint3 level_dims;
 	typedef std::list<static_object> static_object_list;
 	typedef std::list<static_object> lake_object_list;
 	typedef static_object_list::iterator so_list_iter;
@@ -38,10 +26,14 @@ public:
 		const sptr<IOManager> iomanager);
 	void Update();
 	void Render();
-	void GetCoords(const level_pos& inPos, level_coords& outCoords) const;
-	void GetPosition(const level_coords& inCoords, level_pos& outPosition) const;
-	uint GetTileType(const level_coords& inCoords) const;
-	uint GetTileType(const level_pos& inPos) const;
+
+	bool ValidCoords(const uint x, const uint y) const;
+	uint2 GetCoords(const vec3f& inPos) const;
+	vec3f GetPosition(const uint2& inCoords, const float y) const;
+	uint GetTileType(const uint x, const uint y) const;
+	uint GetTileType(const uint2& inCoords) const;
+	uint GetTileType(const vec3f& inPos) const;
+	const level_dims& GetLevelDims() const { return mLevelDims; }
 
 private:
 	static const float LAKE_CURRENT_VEL;

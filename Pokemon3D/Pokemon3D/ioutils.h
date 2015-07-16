@@ -1,8 +1,8 @@
 #pragma once
-#include "common.h"
+#include <string>
+#include "pokedef.h"
 #include "body.h"
 #include "bitmap.h"
-#include <string>
 
 namespace disorganizedData
 {
