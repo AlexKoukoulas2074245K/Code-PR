@@ -3,9 +3,10 @@
 #include <fstream>
 #include <sstream>
 
+#include "body.h"
 #include "common.h"
 
-bool LoadOBJFromFile(std::string filename, Body& result)
+bool LoadOBJFromFile(std::string filename, Body* result)
 {
 
 	std::string strname(filename);
@@ -135,63 +136,10 @@ bool LoadOBJFromFile(std::string filename, Body& result)
 	resultDimensions.y = std::abs(maxY - minY);
 	resultDimensions.x = std::abs(maxX - minX);
 	
-	result.setVertices(resultVertices);
-	result.setIndices(resultIndices);
-	result.setDimensions(resultDimensions);
-	result.setInitDims(resultDimensions);
-
-	return true;
-}
-
-bool LoadBMPFromFile(std::string filename, Bitmap& outBmp)
-{
-	FILE* f;
-	fopen_s(&f, filename.c_str(), "rb");
-
-	if (f == NULL)
-	{
-		LOGLN(("File does not exist: " + std::string(filename)).c_str());
-		return false;
-	}
-	
-	unsigned char info[54];
-	fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
-
-	Bitmap::rgb_dat resultData;
-	uint2 resultDims;
-
-	// extract image height and width from header
-	resultDims.x = *(int*) &info[18];
-	resultDims.y = *(int*) &info[22];
-	int row_padded = (resultDims.x * 3 + 3) & (~3);
-	
-	unsigned char* data = new unsigned char[row_padded];
-	unsigned char tmp;
-
-	
-	for (uint i = 0; i < resultDims.y; i++)
-	{
-		fread(data, sizeof(unsigned char), row_padded, f);
-		for (uint j = 0; j < resultDims.x * 3; j += 3)
-		{
-			// Convert (B, G, R) to (R, G, B)
-			tmp = data[j];
-			data[j] = data[j + 2];
-			data[j + 2] = tmp;
-
-			int3 rgb;
-			rgb.x = (int) data[j];
-			rgb.y = (int) data[j + 1];
-			rgb.z = (int) data[j + 2];
-			resultData.push_back(rgb);
-		}
-	}
-
-	outBmp.FillData(resultData);
-	outBmp.FillDimensions(resultDims);
-
-	delete[] data;
-	fclose(f);
+	result->setVertices(resultVertices);
+	result->setIndices(resultIndices);
+	result->setDimensions(resultDimensions);
+	result->setInitDims(resultDimensions);
 
 	return true;
 }

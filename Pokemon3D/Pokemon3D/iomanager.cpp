@@ -5,7 +5,7 @@
 
 #include "common.h"
 #include "ioutils.h"
-#include "window.h"
+#include "winconfig.h"
 #include "renderer.h"
 
 #define LEVEL_IGNORE_DIRECTIVE "IGNORE"
@@ -40,15 +40,34 @@
 
 IOManager::IOManager()
 {
-	mSuppFormats[Format::BMP] = ".bmp";
 	mSuppFormats[Format::OBJ] = ".obj"; 
 	mSuppFormats[Format::PNG] = ".png";
+	mSuppFormats[Format::HUD] = ".png";	
+	mSuppFormats[Format::FCF] = ".fcf";
 
 	mFormatPaths[Format::OBJ] = "C:/Users/alex/Pictures/projects/pkmnrevo/models/";
 	mFormatPaths[Format::PNG] = "C:/Users/alex/Pictures/projects/pkmnrevo/textures/materials/";
-	mFormatPaths[Format::BMP] = "C:/Users/alex/Pictures/projects/pkmnrevo/textures/hud/";
+	mFormatPaths[Format::HUD] = "C:/Users/alex/Pictures/projects/pkmnrevo/textures/hud/";
+	mFormatPaths[Format::FCF] = "C:/Users/alex/Pictures/projects/pkmnrevo/config/";
 }
 IOManager::~IOManager(){}
+
+void IOManager::SetRenderer(const sptr<Renderer>& renderer)
+{
+	mRenderer = renderer;
+}
+
+bool IOManager::GetFileContent(const str& path, str_list* outList)
+{
+	std::ifstream file;
+	file.open(path.c_str());
+
+	if (!file.is_open() || outList == nullptr) return false;
+
+	str line;
+	for (;std::getline(file, line);) outList->push_back(line);
+	return true;
+}
 
 /* Attempt to assign to the out parameter the entry value for the given id 
 from the preloaded bodies */
@@ -83,9 +102,9 @@ void IOManager::LoadBody(const str& id, const str& mat)
 	if (mPrelBodies.count(path)) return;
 	Body resultBody;
 	resultBody.setSingleTexture(mat);
-	if (LoadOBJFromFile(path, resultBody))
+	if (LoadOBJFromFile(path, &resultBody))
 	{
-		mRenderer->PrepareBody(resultBody, Renderer::ShaderType::DEFAULT);
+		mRenderer->PrepareObject(Renderer::ShaderType::DEFAULT, &resultBody);
 		mPrelBodies[path] = resultBody;
 	}
 }
@@ -143,8 +162,8 @@ void IOManager::GetAllBodiesFromLevel(
 	const str& lvlFilename,
 	const float tileSize,
 	uint3& outDims,
-	std::list<static_geometry>& outList,
-	std::list<static_geometry>& outLakeList,
+	std::list<StaticModel>& outList,
+	std::list<StaticModel>& outLakeList,
 	unsigned int**& ppoutMap)
 {
 	std::ifstream f;
@@ -206,7 +225,7 @@ void IOManager::GetAllBodiesFromLevel(
 			float houseX = std::stof(houseLoc[0]);
 			float houseZ = std::stof(houseLoc[1]);
 			float3 rot = {};
-			static_geometry res{b, {houseX + 1.0f, tileSize / 2, houseZ}, rot};
+			StaticModel res(b, {houseX + 1.0f, tileSize / 2, houseZ}, rot);
 			outList.push_back(res);
 			continue;
 		}
@@ -293,7 +312,7 @@ void IOManager::GetAllBodiesFromLevel(
 					else if (!ori.compare(LEVEL_ORI_BOTRIGHT)) rot.y = static_cast<float>(D3DX_PI);
 					else if (!ori.compare(LEVEL_ORI_BOTLEFT)) rot.y = static_cast<float>(D3DX_PI * 1.5f);
 
-					static_geometry res{b, objPos, rot};
+					StaticModel res(b, objPos, rot);
 					outList.push_back(res);
 				}
 				/* No special case, load the object normally */
@@ -305,7 +324,7 @@ void IOManager::GetAllBodiesFromLevel(
 					else if (objectLastName.compare(LEVEL_SHORT_NAME) == 0) objPos.y = LEVEL_SHORT_HEIGHT;
 					else objPos.y = 0.0f;
 					float3 rot = {};
-					static_geometry res{b, objPos, rot};
+					StaticModel res(b, objPos, rot);
 					outList.push_back(res);
 				}
 				
@@ -316,7 +335,7 @@ void IOManager::GetAllBodiesFromLevel(
 					ForceGetBody(LEVEL_LAKE_PIECE_FULL_NAME, lakePiece);
 					objPos.y = LEVEL_CLOSER;
 					float3 rot = {};
-					static_geometry lakeRes{lakePiece, objPos, rot};
+					StaticModel lakeRes(lakePiece, objPos, rot);
 					outLakeList.push_back(lakeRes);
 
 					/* Check for side edges of lake pieces (if so to avoid graphical glitches
@@ -333,7 +352,7 @@ void IOManager::GetAllBodiesFromLevel(
 						pos.y = LEVEL_CLOSEST;
 						pos.z = objPos.z;
 						float3 rot = {};
-						static_geometry res{b, pos, rot};
+						StaticModel res(b, pos, rot);
 						outList.push_back(res);
 					}
 				}
@@ -350,46 +369,8 @@ void IOManager::GetAllBodiesFromLevel(
 		 LEVEL_FURTHER,
 		 maxDepth / 2 - tileSize / 2};
 	float3 rot = {};
-	static_geometry res{uniFloor, uniFloorPos, rot};
+	StaticModel res(uniFloor, uniFloorPos, rot);
 	outList.push_back(res);
-
-}
-
-void IOManager::GetBmp(const str& id, Bitmap& outBmp)
-{
-	str path;
-	GetPathOf(id, Format::BMP, path);
-	if (mPrelBitmaps.count(path))
-	{
-		outBmp = mPrelBitmaps[path];
-		outBmp.setLoaded(true);
-		return;
-	}
-	outBmp.setLoaded(false);
-	LOGLN(("Bmp does not exist: " + id).c_str());
-}
-
-void IOManager::ForceGetBmp(const str& id, Bitmap& outBmp)
-{
-	LoadBmp(id);
-	GetBmp(id, outBmp);
-}
-
-void IOManager::LoadBmp(const str& id)
-{
-	str path;
-	GetPathOf(id, Format::BMP, path);
-	Bitmap resultBmp;
-	if (LoadBMPFromFile(path, resultBmp)) mPrelBitmaps[path] = resultBmp;
-}
-
-void IOManager::LoadMultipleBmps(const str& directory)
-{
-	str_list paths;
-	GetAllFilenames(directory, paths);
-	for (str_list_iter iter = paths.begin();
-		iter != paths.end();
-		++iter) LoadBmp(*iter);
 }
 
 /* Returns the number of filenames from the directory supplied */

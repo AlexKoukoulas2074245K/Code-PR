@@ -1,5 +1,6 @@
 #include "camera.h"
 #include "common.h"
+
 #define ANGLE static_cast<float>(D3DXToRadian(90))
 #define VALID_ANGLE_LO 1
 #define VALID_ANGLE_HI 4
@@ -10,7 +11,6 @@
 const float Camera::ZNEAR = 0.1f;
 const float Camera::ZFAR = 40.0f;
 const float Camera::FOV = (FLOAT) XMConvertToRadians(45);
-const float Camera::ASPECT = (FLOAT) window::WIDTH / (FLOAT) window::HEIGHT;
 const unsigned int Camera::CAM_FRUST_NSIDES = 6U;
 
 Camera::Camera(): Camera(vec3f()){}
@@ -33,7 +33,7 @@ mTargetPos(0.0f)
 	mOriMap[3] = Orientation::NORTH;
 	mOriMap[4] = Orientation::EAST;
 	mValidAngles = {{-ANGLE, 0.0f, ANGLE, 2*ANGLE, 3*ANGLE, 4*ANGLE}};	
-	D3DXMatrixPerspectiveFovLH(&mProjMatrix, FOV, ASPECT, ZNEAR, ZFAR);
+	D3DXMatrixPerspectiveFovLH(&mProjMatrix, FOV, WindowConfig::ASPECT, ZNEAR, ZFAR);
 }
 Camera::~Camera(){}
 

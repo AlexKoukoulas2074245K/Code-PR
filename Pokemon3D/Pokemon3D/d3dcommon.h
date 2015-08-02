@@ -1,5 +1,4 @@
 #pragma once
-#include "window.h"
 #include <wrl\client.h>
 #include <comdef.h>
 #include <string>
@@ -13,6 +12,7 @@
 #include <dxerr.h>
 #include <xnamath.h>
 
+#include "winconfig.h"
 
 #pragma comment (lib, "dxerr.lib")
 #pragma comment (lib, "dxgi.lib")

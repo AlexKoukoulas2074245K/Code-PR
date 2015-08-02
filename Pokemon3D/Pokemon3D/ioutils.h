@@ -1,9 +1,10 @@
 #pragma once
 #include <string>
-#include "pokedef.h"
-#include "body.h"
-#include "bitmap.h"
+#include <vector>
 
+#include "pokedef.h"
+
+class Body;
 namespace disorganizedData
 {
 	struct disorganized_Vertex{ float x, y, z; };
@@ -17,8 +18,7 @@ namespace organizedData
 }
 
 /* Core obj file loader */
-bool LoadOBJFromFile(std::string filename, Body& outModel);
-bool LoadBMPFromFile(std::string filename, Bitmap& outBmp);
+bool LoadOBJFromFile(std::string filename, Body* outModel);
 
 std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems);
 std::vector<std::string> split(const std::string &s, char delim);

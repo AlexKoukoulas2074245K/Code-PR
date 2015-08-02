@@ -1,8 +1,9 @@
 #pragma once
-#include "d3dcommon.h"
-#include "pokedef.h"
 #include <array>
 #include <map>
+
+#include "d3dcommon.h"
+#include "pokedef.h"
 
 class Camera
 {
@@ -11,7 +12,6 @@ public:
 	static const float ZNEAR;
 	static const float ZFAR;
 	static const float FOV;
-	static const float ASPECT;
 	static const unsigned int CAM_FRUST_NSIDES;
 
 	typedef enum Direction

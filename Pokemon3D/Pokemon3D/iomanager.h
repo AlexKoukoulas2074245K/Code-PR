@@ -4,8 +4,7 @@
 #include <list>
 
 #include "pokedef.h"
-#include "body.h"
-#include "bitmap.h"
+#include "staticmodel.h"
 
 class Renderer;
 class IOManager
@@ -14,15 +13,8 @@ public:
 	
 	enum Format
 	{
-		BMP, OBJ, PNG
+		OBJ, PNG, HUD, FCF
 	};
-
-	typedef struct StaticGeometry
-	{
-		Body body;
-		float3 pos;
-		float3 rot;
-	} static_geometry;
 
 	typedef std::string str;
 	typedef std::list<std::string> str_list;
@@ -33,32 +25,29 @@ public:
 	~IOManager();
 
 	/* Renderer setting */
-	void SetRenderer(const sptr<Renderer>& renderer){ mRenderer = renderer; }
+	void SetRenderer(const sptr<Renderer>& renderer);
+
+	/* Retrieves the content of the specified file and returns it split by newline */
+	bool GetFileContent(const str& path, str_list* outList);
 
 	/* Renderable body methods */
-	void ForceGetBody(const str& id, Body& outBody);
-	void GetBody(const str& id, Body& outBody);
-	void LoadBody(const str& id, const str& mat);
+	void ForceGetBody(const str& name, Body& outBody);
+	void GetBody(const str& name, Body& outBody);
+	void LoadBody(const str& name, const str& mat);
 	void LoadMultipleBodies(const str& directory);
 	void GetAllBodiesFromLevel(
 		const str& lvlFilename,
 		const float tileSize,
 		uint3& outDims,
-		std::list<static_geometry>& outList,
-		std::list<static_geometry>& outLakeList,
+		std::list<StaticModel>& outList,
+		std::list<StaticModel>& outLakeList,
 		unsigned int**& ppoutMap);
 
-	/* Bitmap image methods */
-	void ForceGetBmp(const str& id, Bitmap& outBmp);
-	void GetBmp(const str& id, Bitmap& outBmp);
-	void LoadBmp(const str& id);
-	void LoadMultipleBmps(const str& directory);
-
+	void GetPathOf(const str& id, const Format frmt, str& strOut);
 	void GetAllFilenames(const str& directory, str_list &outFilenames);
 
 private:
 	bool IOManager::ValidPath(const str& path, const Format frmt);
-	void GetPathOf(const str& id, const Format frmt, str& strOut);
 
 private:
 	static const char LEVEL_COMP_SEP = '|';
@@ -70,7 +59,6 @@ private:
 
 	sptr<Renderer> mRenderer;
 	std::map<str, Body> mPrelBodies;
-	std::map<str, Bitmap> mPrelBitmaps;
 	std::map<Format, str> mSuppFormats;
 	std::map<Format, str> mFormatPaths;
 };

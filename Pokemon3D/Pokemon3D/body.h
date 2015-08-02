@@ -1,7 +1,7 @@
 #pragma once
-
 #include <list>
 #include <vector>
+
 #include "texture.h"
 #include "pokedef.h"
 
@@ -26,11 +26,17 @@ public:
 	typedef texture_list::size_type texture_sizet;
 	typedef comptr<ID3D11Buffer> body_buffer;
 	typedef comptr<ID3D11InputLayout> body_layout;
+	
+	static const vertex_list BITMAP_VERTICES;
+	static const index_list BITMAP_INDICES;
+	static const float BITMAP_INIT_WIDTH;
+	static const float BITMAP_INIT_HEIGHT;
 
 	Body();
 	~Body();
 
 	bool isReady() const;
+	const vertex_t& getVertex(vertex_sizet i);
 	const vertex_list& getVertices() const { return mVertices; }
 	const index_list& getIndices() const { return mIndices; }
 	const float3& getDimensions() const { return mDimensions; }
@@ -39,6 +45,7 @@ public:
 	const index_sizet getIndexCount() const { return mIndices.size(); }
 	const Texture& getActiveTexture() const { return mTextures[mActiveTexture]; }
 	
+	void setVertex(vertex_sizet i, const vertex_t& v);
 	void setVertices(const vertex_list& vertices) { mVertices = vertices; }
 	void setIndices(const index_list& indices) {  mIndices = indices; }
 	void setDimensions(const float3& dimensions) { mDimensions = dimensions; }

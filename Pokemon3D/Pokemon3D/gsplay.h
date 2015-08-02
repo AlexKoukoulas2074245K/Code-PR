@@ -3,6 +3,7 @@
 
 class Player;
 class Level;
+class FontEngine;
 class GSPlay: public GameState
 {
 public:
@@ -16,4 +17,5 @@ private:
 	static const vec3f PLR_START_LOC;
 	sptr<Player> mPlayer;
 	sptr<Level> mLevel;
+	sptr<FontEngine> mFont;
 };

@@ -1,6 +1,9 @@
 #include "level.h"
-#include "clock.h"
+
 #include <fstream>
+
+#include "clock.h"
+#include "renderer.h"
 
 const float Level::TILE_SIZE = 1.6f;
 const float Level::LAKE_CURRENT_VEL = 0.001f;
@@ -50,8 +53,8 @@ void Level::Update()
 		iter != mLakePieces.end();
 		++iter)
 	{
-		if(mLakeCurrentLeft) iter->pos.x += LAKE_CURRENT_VEL;
-		else iter->pos.x -= LAKE_CURRENT_VEL;
+		if(mLakeCurrentLeft) iter->setX(iter->getPos().x + LAKE_CURRENT_VEL);
+		else iter->setX(iter->getPos().x - LAKE_CURRENT_VEL);
 	}
 }
 
@@ -61,14 +64,14 @@ void Level::Render()
 		iter != mObjects.end();
 		++iter)
 	{
-		mRenderer->RenderBody(Renderer::ShaderType::DEFAULT, iter->pos, iter->rot, iter->body);
+		mRenderer->RenderModel(&*iter);
 	}
 	
 	for (lo_list_iter iter = mLakePieces.begin();
 		iter != mLakePieces.end();
 		++iter)
 	{
-		mRenderer->RenderBody(Renderer::ShaderType::DEFAULT, iter->pos, iter->rot, iter->body);
+		mRenderer->RenderModel(&*iter);
 	}
 }
 

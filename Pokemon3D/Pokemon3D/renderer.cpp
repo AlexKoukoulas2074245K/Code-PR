@@ -1,6 +1,12 @@
 #include "renderer.h"
+
+#include "hudcomponent.h"
+#include "staticmodel.h"
+#include "body.h"
+#include "ddsloader.h"
+#include "fontengine.h"
+
 #define WIC_TEX
-#define FRUSTUM_CULLING
 
 Renderer::Renderer(){}
 Renderer::~Renderer(){}
@@ -14,6 +20,20 @@ bool Renderer::Initialize(const HWND hWindow)
 	if (!ShaderInitialization()) return false;
 	if (!LayoutInitialization()) return false;
 
+	return true;
+}
+
+bool Renderer::LoadFontImage(const std::string& imagePath, Texture* fontImage)
+{
+	Texture texture;
+	HR(DirectX::CreateWICTextureFromFile(
+		mDevice.Get(),
+		mDevcon.Get(),
+		util::stringToWString(imagePath.c_str()).c_str(),
+		NULL,
+		&texture.modTexture(),
+		0));
+	*fontImage = texture;
 	return true;
 }
 
@@ -34,7 +54,10 @@ void Renderer::PrepareFrame(
 
 void Renderer::CompleteFrame()
 {
-	mSwapchain->Present(1, 0);
+	if (WindowConfig::VSYNC)
+		mSwapchain->Present(1, 0);
+	else
+		mSwapchain->Present(0, 0);
 }
 
 void Renderer::ChangeActiveLayout(const ShaderType shaderType)
@@ -45,24 +68,59 @@ void Renderer::ChangeActiveLayout(const ShaderType shaderType)
 	mDevcon->IASetInputLayout(mShaderLayouts[mActiveShaderType].Get());
 }
 
-void Renderer::RenderBody(
+void Renderer::setDepthRendering(const bool depthRendering)
+{
+	if (mDepthRendering == depthRendering) return;
+	mDepthRendering = depthRendering;
+	if (mDepthRendering) mDevcon->OMSetDepthStencilState(mDepthStencilState.Get(), 1);
+	else mDevcon->OMSetDepthStencilState(mDisabledDepthState.Get(), 1);
+}
+
+void Renderer::RenderHUD(HUDComponent* hudc)
+{
+	setDepthRendering(false);
+	float2 hudcPos = hudc->getPosition();
+	float3 finalPos = float3{hudcPos.x, hudcPos.y, 0.0f};
+	float3 finalRot = {};
+	RenderObject(ShaderType::HUD, finalPos, finalRot, true, hudc->getModBodyPointer());
+}
+
+void Renderer::RenderText(const std::list<std::string>& chars, const float2& startPos, FontEngine* font)
+{
+	float2 posCounter = {};
+	posCounter.x = startPos.x;
+	posCounter.y = startPos.y;
+	for (std::list<std::string>::const_iterator citer = chars.begin();
+		 citer != chars.end();
+		 ++citer)
+	{
+		HUDComponent* glyphComp = font->modGlyphCompPointer(*citer);
+		glyphComp->setPosition(posCounter.x, posCounter.y);
+		RenderHUD(glyphComp);
+		posCounter.x += 0.05f;
+	}
+}
+
+void Renderer::RenderModel(StaticModel* model)
+{
+	setDepthRendering(true);
+	RenderObject(ShaderType::DEFAULT, model->getPos(), model->getRot(), false, model->getModBodyPointer());
+}
+
+void Renderer::RenderObject(
 	const ShaderType shader,
 	const float3& pos,
 	const float3& rot,
-	Body& body)
+	const bool hud,
+	Body* body)
 {
-	if (!body.isReady()
-#ifdef FRUSTUM_CULLING
-		|| !isVisible(body, pos)
-#endif
-		) return;
-
+	if (!body->isReady() || (!hud && !isVisible(body, pos))) return;
 	if (mActiveShaderType != shader) ChangeActiveLayout(shader);
 
 	UINT stride = sizeof(Body::Vertex);
 	UINT offset = 0;
-	mDevcon->IASetVertexBuffers(0, 1, body.modVertexBuffer().GetAddressOf(), &stride, &offset);
-	mDevcon->IASetIndexBuffer(body.immIndexBuffer().Get(), d3dconst::INDEX_FORMAT, 0U);
+	mDevcon->IASetVertexBuffers(0, 1, body->modVertexBuffer().GetAddressOf(), &stride, &offset);
+	mDevcon->IASetIndexBuffer(body->immIndexBuffer().Get(), d3dconst::INDEX_FORMAT, 0U);
 	
 	
 	mat4x4 matTrans, matRotX, matRotY, matRotZ, matScale;
@@ -71,49 +129,61 @@ void Renderer::RenderBody(
 	D3DXMatrixRotationY(&matRotY, rot.y);
 	D3DXMatrixRotationZ(&matRotZ, rot.z);
 
-	float3 bodyInDims = body.getInitDims();
-	float3 bodyAcDims = body.getDimensions();
-	D3DXMatrixScaling(
-		&matScale,
-		bodyAcDims.x / bodyInDims.x,
-		1.0f,
-		bodyAcDims.z / bodyInDims.z);
+	float3 bodyInDims = body->getInitDims();
+	float3 bodyAcDims = body->getDimensions();
 
-	D3DXMATRIX matFinal = matScale *
-						  matRotX * matRotY * matRotZ * 
-						  matTrans *
-						  mCurrView *
-						  mCurrProj;
+	if (hud) D3DXMatrixScaling(
+				&matScale,
+				(bodyAcDims.x / bodyInDims.x) / WindowConfig::ASPECT,
+				bodyAcDims.y / bodyInDims.y,
+				1.0f);
+	else 	D3DXMatrixScaling(
+				&matScale,
+				bodyAcDims.x / bodyInDims.x,
+				1.0f,
+				bodyAcDims.z / bodyInDims.z);
+
+	D3DXMATRIX matWorld = matScale * matRotX * matRotY * matRotZ * matTrans;
+	D3DXMATRIX matFinal = hud ? matWorld : matWorld * mCurrView * mCurrProj;
 
 	Shader::MatrixBuffer mb = {};
 	mb.camPosition = mCurrCamPosition;
 	mb.finalMatrix = matFinal;
 	mb.rotMatrix = matRotX * matRotY * matRotZ;
-	mb.worldMatrix = matTrans;
+	mb.worldMatrix = matWorld;
 
-	//TODO render material
-	mDevcon->PSSetShaderResources(0, 1, body.getActiveTexture().immTexture().GetAddressOf());
+	mDevcon->PSSetShaderResources(0, 1, body->getActiveTexture().immTexture().GetAddressOf());
 	mDevcon->VSSetConstantBuffers(0, 1, IACTIVE_SHADER.getMatrixBuffer().GetAddressOf());
 	mDevcon->UpdateSubresource(IACTIVE_SHADER.getMatrixBuffer().Get(), NULL, NULL, &mb, NULL, NULL);
 	mDevcon->IASetPrimitiveTopology(d3dconst::PRIMITIVES);
-	mDevcon->DrawIndexed(body.getIndexCount(), 0, 0);
+	mDevcon->DrawIndexed(body->getIndexCount(), 0, 0);
 }
 
-bool Renderer::PrepareBody(Body& body, const ShaderType shader)
+bool Renderer::PrepareModel(StaticModel* model)
 {
-	comptr<ID3D11Buffer>& bodyVB = body.modVertexBuffer();
-	comptr<ID3D11Buffer>& bodyIB = body.modIndexBuffer();
+	return PrepareObject(ShaderType::DEFAULT, model->getModBodyPointer());
+}
+
+bool Renderer::PrepareHUD(HUDComponent* hudc)
+{
+	return PrepareObject(ShaderType::HUD, hudc->getModBodyPointer());
+}
+
+bool Renderer::PrepareObject(const ShaderType shader, Body* body)
+{
+	comptr<ID3D11Buffer>& bodyVB = body->modVertexBuffer();
+	comptr<ID3D11Buffer>& bodyIB = body->modIndexBuffer();
 	
 	/* Vertex Buffer creation */
 	D3D11_BUFFER_DESC vbd = {};
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vbd.ByteWidth = sizeof(Body::vertex_t) * body.getVertexCount();
+	vbd.ByteWidth = sizeof(Body::vertex_t) * body->getVertexCount();
 	
 	/* Need to create a placeholder vector for vertex list element traversal */
 	D3D11_SUBRESOURCE_DATA vsrd = {};
 	std::vector<Body::Vertex> tempVertices(
-		body.getVertices().begin(),
-		body.getVertices().end());
+		body->getVertices().begin(),
+		body->getVertices().end());
 	vsrd.pSysMem = &tempVertices[0];
 	
 	HR(mDevice->CreateBuffer(&vbd, &vsrd, &bodyVB));
@@ -121,20 +191,20 @@ bool Renderer::PrepareBody(Body& body, const ShaderType shader)
 	/* Index Buffer creation */
 	D3D11_BUFFER_DESC ibd = {};
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	ibd.ByteWidth = sizeof(Body::index_t) * body.getIndexCount();
+	ibd.ByteWidth = sizeof(Body::index_t) * body->getIndexCount();
 	
 	/* Need to create a placeholder vector for index list element traversal */
 	D3D11_SUBRESOURCE_DATA isrd = {};
 	std::vector<Body::index_t> tempIndices(
-		body.getIndices().begin(),
-		body.getIndices().end());
+		body->getIndices().begin(),
+		body->getIndices().end());
 	isrd.pSysMem = &tempIndices[0];
 
 	HR(mDevice->CreateBuffer(&ibd, &isrd, &bodyIB));
 
 	/* Load textures: remove from toload and assign to texlist */
-	Body::textoload_list& toload = body.modTexturesToLoad();
-	Body::texture_list& texlist = body.modTextures();
+	Body::textoload_list& toload = body->modTexturesToLoad();
+	Body::texture_list& texlist = body->modTextures();
 
 	while (!toload.empty())
 	{
@@ -193,8 +263,8 @@ bool Renderer::PreInitialization(const HWND& hWindow, uint& outrrNum, uint& outr
 	/* Find appropriate display mode for the current window resolution */
 	for (size_t i = 0; i < numModes; i++)
 	{
-		if (dispModeList[i].Width == (uint) window::WIDTH &&
-			dispModeList[i].Height == (uint) window::HEIGHT)
+		if (dispModeList[i].Width == (uint) WindowConfig::WIDTH &&
+			dispModeList[i].Height == (uint) WindowConfig::HEIGHT)
 		{
 			outrrNum = dispModeList[i].RefreshRate.Numerator;
 			outrrDen = dispModeList[i].RefreshRate.Denominator;
@@ -221,11 +291,11 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 {
 	/* Swap chain description */
 	DXGI_SWAP_CHAIN_DESC scd = {};
-	scd.BufferDesc.Width = window::WIDTH;
-	scd.BufferDesc.Height = window::HEIGHT;
+	scd.BufferDesc.Width = WindowConfig::WIDTH;
+	scd.BufferDesc.Height = WindowConfig::HEIGHT;
 	scd.BufferDesc.Format = d3dconst::BACK_BUFFER_FORMAT;
-	scd.BufferDesc.RefreshRate.Numerator = window::VSYNC ? rrNum : 0;
-	scd.BufferDesc.RefreshRate.Denominator = window::VSYNC ? rrDen : 1;
+	scd.BufferDesc.RefreshRate.Numerator = WindowConfig::VSYNC ? rrNum : 0;
+	scd.BufferDesc.RefreshRate.Denominator = WindowConfig::VSYNC ? rrDen : 1;
 	scd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	scd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	scd.SampleDesc.Count = d3dconst::MS_COUNT;
@@ -233,7 +303,7 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	scd.BufferCount = 1;
 	scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	scd.OutputWindow = hWindow;
-	scd.Windowed = !window::FULLSCREEN;
+	scd.Windowed = !WindowConfig::FULL_SCREEN;
 	scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	scd.Flags = 0;
 
@@ -261,8 +331,8 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 
 	/* Create depth buffer */
 	D3D11_TEXTURE2D_DESC dbd = {};
-	dbd.Width = window::WIDTH;
-	dbd.Height = window::HEIGHT;
+	dbd.Width = WindowConfig::WIDTH;
+	dbd.Height = WindowConfig::HEIGHT;
 	dbd.MipLevels = 1;
 	dbd.ArraySize = 1;
 	dbd.Format = d3dconst::DEPTH_BUFFER_FORMAT;
@@ -289,8 +359,9 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 	depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 	HR(mDevice->CreateDepthStencilState(&depthStencilDesc, &mDepthStencilState));
-	mDevcon->OMSetDepthStencilState(mDepthStencilState.Get(), 1);
-
+	depthStencilDesc.DepthEnable = false;
+	HR(mDevice->CreateDepthStencilState(&depthStencilDesc, &mDisabledDepthState));
+	
 	/* Create the depth stencil view */
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsvd = {};
 	dsvd.Format = d3dconst::DEPTH_BUFFER_FORMAT;
@@ -353,8 +424,8 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	D3D11_VIEWPORT viewport = {};
 	viewport.TopLeftX = 0.0f;
 	viewport.TopLeftY = 0.0f;
-	viewport.Width = static_cast<FLOAT>(window::WIDTH);
-	viewport.Height = static_cast<FLOAT>(window::HEIGHT);
+	viewport.Width = static_cast<FLOAT>(WindowConfig::WIDTH);
+	viewport.Height = static_cast<FLOAT>(WindowConfig::HEIGHT);
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 	mDevcon->RSSetViewports(1, &viewport);
@@ -421,9 +492,9 @@ bool Renderer::LayoutInitialization()
 	return true;
 }
 
-bool Renderer::isVisible(const Body& b, const float3& pos)
+bool Renderer::isVisible(const Body* b, const float3& pos)
 {
-	float3 bdims = b.getDimensions();
+	float3 bdims = b->getDimensions();
 	float collSphereRad = util::maxf(bdims.z,
 						  util::maxf(bdims.y, bdims.x));
 	

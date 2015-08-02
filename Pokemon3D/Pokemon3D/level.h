@@ -1,18 +1,18 @@
 #pragma once
 #include <list>
-#include "body.h"
-#include "renderer.h"
+
+#include "staticmodel.h"
 #include "iomanager.h"
 
+class Renderer;
 class Level
 {
 public:
 	static const float TILE_SIZE;
 	typedef unsigned int** level_map;
-	typedef IOManager::static_geometry static_object;
 	typedef uint3 level_dims;
-	typedef std::list<static_object> static_object_list;
-	typedef std::list<static_object> lake_object_list;
+	typedef std::list<StaticModel> static_object_list;
+	typedef std::list<StaticModel> lake_object_list;
 	typedef static_object_list::iterator so_list_iter;
 	typedef static_object_list::const_iterator so_list_const_iter;
 	typedef lake_object_list::iterator lo_list_iter;

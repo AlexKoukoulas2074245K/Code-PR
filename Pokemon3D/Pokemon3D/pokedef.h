@@ -10,6 +10,7 @@ typedef unsigned short ushort;
 typedef unsigned int uint;
 typedef unsigned long ulong;
 
+typedef struct float2 { float x, y; } float2;
 typedef struct float3 { float x, y, z; } float3;
 typedef struct float4 { float x, y, z, w; } float4;
 typedef D3DXVECTOR3 vec3f;

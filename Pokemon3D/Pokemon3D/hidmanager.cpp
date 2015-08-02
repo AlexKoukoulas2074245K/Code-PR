@@ -1,4 +1,5 @@
 #include "hidmanager.h"
+
 #define VK_Z 0x5A
 #define VK_X 0x58
 

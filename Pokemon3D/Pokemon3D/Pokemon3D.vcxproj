@@ -67,15 +67,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="bitmap.cpp" />
     <ClCompile Include="body.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="clock.cpp" />
     <ClCompile Include="ddsloader.cpp" />
+    <ClCompile Include="fontengine.cpp" />
     <ClCompile Include="fpscounter.cpp" />
     <ClCompile Include="gsplay.cpp" />
     <ClCompile Include="gsqueue.cpp" />
     <ClCompile Include="hidmanager.cpp" />
+    <ClCompile Include="hudcomponent.cpp" />
     <ClCompile Include="iomanager.cpp" />
     <ClCompile Include="ioutils.cpp" />
     <ClCompile Include="level.cpp" />
@@ -83,9 +84,9 @@
     <ClCompile Include="player.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="winconfig.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bitmap.h" />
     <ClInclude Include="body.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="clock.h" />
@@ -94,10 +95,12 @@
     <ClInclude Include="d3dcommon.h" />
     <ClInclude Include="ddshelpers.h" />
     <ClInclude Include="ddsloader.h" />
+    <ClInclude Include="fontengine.h" />
     <ClInclude Include="fpscounter.h" />
     <ClInclude Include="gsplay.h" />
     <ClInclude Include="gsqueue.h" />
     <ClInclude Include="hidmanager.h" />
+    <ClInclude Include="hudcomponent.h" />
     <ClInclude Include="iomanager.h" />
     <ClInclude Include="ioutils.h" />
     <ClInclude Include="level.h" />
@@ -105,8 +108,9 @@
     <ClInclude Include="pokedef.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="staticmodel.h" />
     <ClInclude Include="texture.h" />
-    <ClInclude Include="window.h" />
+    <ClInclude Include="winconfig.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

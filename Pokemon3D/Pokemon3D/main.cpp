@@ -1,8 +1,10 @@
+#include <fstream>
+
 #include "vld.h"
 #include "gsqueue.h"
 #include "renderer.h"
-#include "window.h"
-#include <fstream>
+#include "winconfig.h"
+
 std::ofstream LOGFILE;
 
 LRESULT CALLBACK WndProc(
@@ -20,6 +22,7 @@ int CALLBACK WinMain(
 	int nCmdShow)
 {
 	START_EXT_LOGGING();
+	WindowConfig winconfig("C:/Users/alex/Pictures/projects/pkmnrevo/config/window.ini");
 
 	/* Window Handle */
 	HWND hWindow;
@@ -33,20 +36,20 @@ int CALLBACK WinMain(
 	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wndClass.hIconSm = wndClass.hIcon;
 	wndClass.hbrBackground = (HBRUSH) COLOR_WINDOW;
-	wndClass.lpszClassName = window::APP_NAME;
+	wndClass.lpszClassName = WindowConfig::APP_NAME;
 
 	/* Window registraton */
 	RegisterClassEx(&wndClass);
 
 	util::pair<ulong> wndPos = {};
-	if (window::FULLSCREEN)
+	if (WindowConfig::FULL_SCREEN)
 	{
 		/* Display device info */
 		DEVMODE	dmScreen = {};
 		dmScreen.dmSize = sizeof(dmScreen);
-		dmScreen.dmPelsWidth = (ulong) window::WIDTH;
-		dmScreen.dmPelsHeight = (ulong) window::HEIGHT;
-		dmScreen.dmBitsPerPel = window::PEL_BIT;
+		dmScreen.dmPelsWidth = (ulong) WindowConfig::WIDTH;
+		dmScreen.dmPelsHeight = (ulong) WindowConfig::HEIGHT;
+		dmScreen.dmBitsPerPel = 32;
 		dmScreen.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 		
 		/* Apply changes */
@@ -54,20 +57,20 @@ int CALLBACK WinMain(
 	}
 	else
 	{
-		wndPos.a = (GetSystemMetrics(SM_CXSCREEN) - window::WIDTH) / 2;
-		wndPos.b = (GetSystemMetrics(SM_CYSCREEN) - window::HEIGHT) / 2;
+		wndPos.a = (GetSystemMetrics(SM_CXSCREEN) - WindowConfig::WIDTH) / 2;
+		wndPos.b = (GetSystemMetrics(SM_CYSCREEN) - WindowConfig::HEIGHT) / 2;
 	}
 
 	/* Window creation */
 	hWindow = CreateWindowEx(
 		NULL,
-		window::APP_NAME,
-		window::APP_NAME,
+		WindowConfig::APP_NAME,
+		WindowConfig::APP_NAME,
 		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
 		wndPos.a,
 		wndPos.b,
-		window::WIDTH,
-		window::HEIGHT,
+		WindowConfig::WIDTH,
+		WindowConfig::HEIGHT,
 		NULL,
 		NULL,
 		hInstance,
