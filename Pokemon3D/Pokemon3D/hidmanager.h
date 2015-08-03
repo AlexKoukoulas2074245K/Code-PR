@@ -1,7 +1,7 @@
 #pragma once
 #include <map>
 
-#include "winconfig.h"
+#include "config.h"
 
 #define KEY_LEFT   0x00000001
 #define KEY_RIGHT  0x00000002

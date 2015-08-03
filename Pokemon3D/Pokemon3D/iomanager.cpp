@@ -5,7 +5,6 @@
 
 #include "common.h"
 #include "ioutils.h"
-#include "winconfig.h"
 #include "renderer.h"
 
 #define LEVEL_IGNORE_DIRECTIVE "IGNORE"

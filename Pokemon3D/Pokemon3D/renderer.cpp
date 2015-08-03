@@ -54,7 +54,7 @@ void Renderer::PrepareFrame(
 
 void Renderer::CompleteFrame()
 {
-	if (WindowConfig::VSYNC)
+	if (AppConfig::VSYNC)
 		mSwapchain->Present(1, 0);
 	else
 		mSwapchain->Present(0, 0);
@@ -68,42 +68,55 @@ void Renderer::ChangeActiveLayout(const ShaderType shaderType)
 	mDevcon->IASetInputLayout(mShaderLayouts[mActiveShaderType].Get());
 }
 
-void Renderer::setDepthRendering(const bool depthRendering)
+void Renderer::enableHUDRendering()
 {
-	if (mDepthRendering == depthRendering) return;
-	mDepthRendering = depthRendering;
-	if (mDepthRendering) mDevcon->OMSetDepthStencilState(mDepthStencilState.Get(), 1);
-	else mDevcon->OMSetDepthStencilState(mDisabledDepthState.Get(), 1);
+	if (mHUDRendering) return;
+	mHUDRendering = true;
+	mDevcon->OMSetDepthStencilState(mDisabledDepthState.Get(), 1);
+	mDevcon->PSSetSamplers(0, 1, mHUDSampleState.GetAddressOf());
 }
 
-void Renderer::RenderHUD(HUDComponent* hudc)
+void Renderer::disableHUDRendering()
 {
-	setDepthRendering(false);
+	if (!mHUDRendering) return;
+	mHUDRendering = false;
+	mDevcon->OMSetDepthStencilState(mDepthStencilState.Get(), 1);
+	mDevcon->PSSetSamplers(0, 1, mDefaultSampleState.GetAddressOf());
+}
+
+void Renderer::RenderHUD(HUDComponent* hudc, float4 color /* COLOR_BLACK */)
+{
+	enableHUDRendering();
 	float2 hudcPos = hudc->getPosition();
 	float3 finalPos = float3{hudcPos.x, hudcPos.y, 0.0f};
 	float3 finalRot = {};
-	RenderObject(ShaderType::HUD, finalPos, finalRot, true, hudc->getModBodyPointer());
+	RenderObject(ShaderType::HUD, finalPos, finalRot, true, hudc->getModBodyPointer(), color);
 }
 
-void Renderer::RenderText(const std::list<std::string>& chars, const float2& startPos, FontEngine* font)
+void Renderer::RenderText(
+	const std::string& chars,
+	const float2& startPos,
+	FontEngine* font,
+	float4 color /* COLOR_BLACK */)
 {
 	float2 posCounter = {};
 	posCounter.x = startPos.x;
 	posCounter.y = startPos.y;
-	for (std::list<std::string>::const_iterator citer = chars.begin();
+	for (std::string::const_iterator citer = chars.begin();
 		 citer != chars.end();
 		 ++citer)
 	{
 		HUDComponent* glyphComp = font->modGlyphCompPointer(*citer);
+		glyphComp->setDimensions(glyphComp->getBody().getInitDims().x, glyphComp->getBody().getInitDims().y);
 		glyphComp->setPosition(posCounter.x, posCounter.y);
-		RenderHUD(glyphComp);
+		RenderHUD(glyphComp, color);
 		posCounter.x += 0.05f;
 	}
 }
 
 void Renderer::RenderModel(StaticModel* model)
 {
-	setDepthRendering(true);
+	disableHUDRendering();
 	RenderObject(ShaderType::DEFAULT, model->getPos(), model->getRot(), false, model->getModBodyPointer());
 }
 
@@ -112,7 +125,8 @@ void Renderer::RenderObject(
 	const float3& pos,
 	const float3& rot,
 	const bool hud,
-	Body* body)
+	Body* body,
+	float4 color /* COLOR_BLACK */)
 {
 	if (!body->isReady() || (!hud && !isVisible(body, pos))) return;
 	if (mActiveShaderType != shader) ChangeActiveLayout(shader);
@@ -134,7 +148,7 @@ void Renderer::RenderObject(
 
 	if (hud) D3DXMatrixScaling(
 				&matScale,
-				(bodyAcDims.x / bodyInDims.x) / WindowConfig::ASPECT,
+				(bodyAcDims.x / bodyInDims.x) / AppConfig::ASPECT,
 				bodyAcDims.y / bodyInDims.y,
 				1.0f);
 	else 	D3DXMatrixScaling(
@@ -152,9 +166,14 @@ void Renderer::RenderObject(
 	mb.rotMatrix = matRotX * matRotY * matRotZ;
 	mb.worldMatrix = matWorld;
 
+	Shader::ColorBuffer cb = {};
+	cb.color = color;
+
 	mDevcon->PSSetShaderResources(0, 1, body->getActiveTexture().immTexture().GetAddressOf());
 	mDevcon->VSSetConstantBuffers(0, 1, IACTIVE_SHADER.getMatrixBuffer().GetAddressOf());
+	mDevcon->PSSetConstantBuffers(0, 1, IACTIVE_SHADER.getColorBuffer().GetAddressOf());
 	mDevcon->UpdateSubresource(IACTIVE_SHADER.getMatrixBuffer().Get(), NULL, NULL, &mb, NULL, NULL);
+	mDevcon->UpdateSubresource(IACTIVE_SHADER.getColorBuffer().Get(), NULL, NULL, &cb, NULL, NULL);
 	mDevcon->IASetPrimitiveTopology(d3dconst::PRIMITIVES);
 	mDevcon->DrawIndexed(body->getIndexCount(), 0, 0);
 }
@@ -263,8 +282,8 @@ bool Renderer::PreInitialization(const HWND& hWindow, uint& outrrNum, uint& outr
 	/* Find appropriate display mode for the current window resolution */
 	for (size_t i = 0; i < numModes; i++)
 	{
-		if (dispModeList[i].Width == (uint) WindowConfig::WIDTH &&
-			dispModeList[i].Height == (uint) WindowConfig::HEIGHT)
+		if (dispModeList[i].Width == (uint) AppConfig::WIDTH &&
+			dispModeList[i].Height == (uint) AppConfig::HEIGHT)
 		{
 			outrrNum = dispModeList[i].RefreshRate.Numerator;
 			outrrDen = dispModeList[i].RefreshRate.Denominator;
@@ -291,19 +310,19 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 {
 	/* Swap chain description */
 	DXGI_SWAP_CHAIN_DESC scd = {};
-	scd.BufferDesc.Width = WindowConfig::WIDTH;
-	scd.BufferDesc.Height = WindowConfig::HEIGHT;
+	scd.BufferDesc.Width = AppConfig::WIDTH;
+	scd.BufferDesc.Height = AppConfig::HEIGHT;
 	scd.BufferDesc.Format = d3dconst::BACK_BUFFER_FORMAT;
-	scd.BufferDesc.RefreshRate.Numerator = WindowConfig::VSYNC ? rrNum : 0;
-	scd.BufferDesc.RefreshRate.Denominator = WindowConfig::VSYNC ? rrDen : 1;
+	scd.BufferDesc.RefreshRate.Numerator = AppConfig::VSYNC ? rrNum : 0;
+	scd.BufferDesc.RefreshRate.Denominator = AppConfig::VSYNC ? rrDen : 1;
 	scd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	scd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-	scd.SampleDesc.Count = d3dconst::MS_COUNT;
-	scd.SampleDesc.Quality = d3dconst::MS_QUAL;
+	if (AppConfig::MULTISAMPLING) scd.SampleDesc = {4, 0};
+	else scd.SampleDesc = {1, 0};
 	scd.BufferCount = 1;
 	scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	scd.OutputWindow = hWindow;
-	scd.Windowed = !WindowConfig::FULL_SCREEN;
+	scd.Windowed = !AppConfig::FULL_SCREEN;
 	scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	scd.Flags = 0;
 
@@ -331,13 +350,13 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 
 	/* Create depth buffer */
 	D3D11_TEXTURE2D_DESC dbd = {};
-	dbd.Width = WindowConfig::WIDTH;
-	dbd.Height = WindowConfig::HEIGHT;
+	dbd.Width = AppConfig::WIDTH;
+	dbd.Height = AppConfig::HEIGHT;
 	dbd.MipLevels = 1;
 	dbd.ArraySize = 1;
 	dbd.Format = d3dconst::DEPTH_BUFFER_FORMAT;
-	dbd.SampleDesc.Count = d3dconst::MS_COUNT;
-	dbd.SampleDesc.Quality = d3dconst::MS_QUAL;
+	if (AppConfig::MULTISAMPLING) dbd.SampleDesc = {4, 0};
+	else dbd.SampleDesc = {1, 0};
 	dbd.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	
 	HR(mDevice->CreateTexture2D(&dbd, NULL, &mDepthBuffer));
@@ -365,7 +384,8 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	/* Create the depth stencil view */
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsvd = {};
 	dsvd.Format = d3dconst::DEPTH_BUFFER_FORMAT;
-	dsvd.ViewDimension = d3dconst::DEPTH_BUFFER_DIMENSION;
+	if (AppConfig::MULTISAMPLING) dsvd.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+	else dsvd.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	dsvd.Texture2D.MipSlice = 0;
 	HR(mDevice->CreateDepthStencilView(mDepthBuffer.Get(), &dsvd, &mDepthStencilView));
 	
@@ -389,7 +409,7 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 
 	D3D11_SAMPLER_DESC sd;
 	sd.Filter = D3D11_FILTER_ANISOTROPIC;
-	sd.MaxAnisotropy = 8;
+	sd.MaxAnisotropy = AppConfig::ANISOTROPIC;
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 	sd.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 	sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -401,8 +421,10 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	sd.MaxLOD = FLT_MAX;
 	sd.MipLODBias = 0.0f;
 
-	mDevice->CreateSamplerState(&sd, &mSampleState);
-	mDevcon->PSSetSamplers(0, 1, mSampleState.GetAddressOf());
+	mDevice->CreateSamplerState(&sd, &mDefaultSampleState);
+	sd.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	mDevice->CreateSamplerState(&sd, &mHUDSampleState);
+	mDevcon->PSSetSamplers(0, 1, mDefaultSampleState.GetAddressOf());
 
 	/* Create the custom rasterizer state */
 	D3D11_RASTERIZER_DESC rastDesc = {};
@@ -424,8 +446,8 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	D3D11_VIEWPORT viewport = {};
 	viewport.TopLeftX = 0.0f;
 	viewport.TopLeftY = 0.0f;
-	viewport.Width = static_cast<FLOAT>(WindowConfig::WIDTH);
-	viewport.Height = static_cast<FLOAT>(WindowConfig::HEIGHT);
+	viewport.Width = static_cast<FLOAT>(AppConfig::WIDTH);
+	viewport.Height = static_cast<FLOAT>(AppConfig::HEIGHT);
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 	mDevcon->RSSetViewports(1, &viewport);

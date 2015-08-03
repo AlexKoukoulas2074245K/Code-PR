@@ -17,6 +17,11 @@ public:
 		vec4f camPosition;
 	};
 
+	struct ColorBuffer
+	{
+		float4 color;
+	};
+
 	Shader();
 	~Shader();
 
@@ -25,6 +30,7 @@ public:
 		const std::string& coreFname);
 
 	comptr<ID3D11Buffer> getMatrixBuffer() const { return mcMatrixBuffer; }
+	comptr<ID3D11Buffer> getColorBuffer() const { return mcColorBuffer; }
 	comptr<ID3D11VertexShader> getVertexShader() const { return mVertexShader; }
 	comptr<ID3D11PixelShader> getPixelShader() const { return mPixelShader; }
 	void* getByteCode() const { return mVSBuffer->GetBufferPointer(); }
@@ -36,4 +42,5 @@ private:
 	comptr<ID3D11VertexShader> mVertexShader;
 	comptr<ID3D11PixelShader> mPixelShader;
 	comptr<ID3D11Buffer> mcMatrixBuffer;
+	comptr<ID3D11Buffer> mcColorBuffer;
 };

@@ -8,6 +8,7 @@ class Renderer;
 class HIDManager;
 class IOManager;
 class FpsCounter;
+class FontEngine;
 class GSQueue
 {
 public:
@@ -32,5 +33,6 @@ private:
 	sptr<Renderer> mRenderer;
 	sptr<IOManager> mIOManager;
 	sptr<HIDManager> mHIDManager;
+	sptr<FontEngine> mFontEngine;
 	uptr<FpsCounter> mFpsc;
 };

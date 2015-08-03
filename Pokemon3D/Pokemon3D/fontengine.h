@@ -14,9 +14,9 @@ public:
 	FontEngine(const std::string& fontName): mName(fontName){}
 	~FontEngine(){}
 
-	void PrepareFont(sptr<IOManager> iom, sptr<Renderer> rend);
-	const float2& getGlyphPosition(const std::string& glyph){ return mGlyphMap[glyph]; }
-	HUDComponent* modGlyphCompPointer(const std::string& glyph) { return &mGlyphComps[glyph]; }
+	void PrepareFontEngine(sptr<IOManager> iom, sptr<Renderer> rend);
+	const float2& getGlyphPosition(const char glyph){ return mGlyphMap[glyph]; }
+	HUDComponent* modGlyphCompPointer(const char& glyph) { return &mGlyphComps[glyph]; }
 	const std::string& getName() const { return mName; }
 	Texture& modTexture() { return mFontTexture; }
 	void setTexture(const Texture& texture) { mFontTexture = texture; }
@@ -27,6 +27,6 @@ private:
 		
 	std::string mName;
 	Texture mFontTexture;
-	std::map<std::string, float2> mGlyphMap;
-	std::map<std::string, HUDComponent> mGlyphComps;
+	std::map<char, float2> mGlyphMap;
+	std::map<char, HUDComponent> mGlyphComps;
 };

@@ -33,7 +33,7 @@ mTargetPos(0.0f)
 	mOriMap[3] = Orientation::NORTH;
 	mOriMap[4] = Orientation::EAST;
 	mValidAngles = {{-ANGLE, 0.0f, ANGLE, 2*ANGLE, 3*ANGLE, 4*ANGLE}};	
-	D3DXMatrixPerspectiveFovLH(&mProjMatrix, FOV, WindowConfig::ASPECT, ZNEAR, ZFAR);
+	D3DXMatrixPerspectiveFovLH(&mProjMatrix, FOV, AppConfig::ASPECT, ZNEAR, ZFAR);
 }
 Camera::~Camera(){}
 

@@ -8,7 +8,7 @@
 
 const float FontEngine::FONT_IMAGE_SIZE = 256.0f;
 
-void FontEngine::PrepareFont(sptr<IOManager> iom, sptr<Renderer> rend)
+void FontEngine::PrepareFontEngine(sptr<IOManager> iom, sptr<Renderer> rend)
 {
 	IOManager::str configPath;
 	iom->GetPathOf(mName, IOManager::Format::FCF, configPath);
@@ -30,7 +30,7 @@ void FontEngine::PrepareFont(sptr<IOManager> iom, sptr<Renderer> rend)
 			 cit != splitLine.end();
 			 ++cit)
 		{
-			mGlyphMap[*cit] = float2{static_cast<float>(cellX), static_cast<float>(cellY)};
+			mGlyphMap[(*cit)[0]] = float2{static_cast<float>(cellX), static_cast<float>(cellY)};
 
 			HUDComponent glyphComp;
 			float2 newCoords[4];
@@ -45,7 +45,7 @@ void FontEngine::PrepareFont(sptr<IOManager> iom, sptr<Renderer> rend)
 			glyphComp.ChangeTexCoords(newCoords);
 			glyphComp.setImage(mName, iom);
 			rend->PrepareHUD(&glyphComp);
-			mGlyphComps[*cit] = glyphComp;
+			mGlyphComps[(*cit)[0]] = glyphComp;
 
 			cellX += FONT_CELL_SIZE;
 		}

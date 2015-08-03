@@ -2,10 +2,10 @@
 
 const Body::vertex_list Body::BITMAP_VERTICES = 
 {
-	Vertex{-0.05f, 0.05f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	Vertex{0.05f, 0.05f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	Vertex{0.05f, -0.05f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f},
-	Vertex{-0.05f, -0.05f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f},
+	Vertex{-0.1f, 0.1f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	Vertex{0.1f, 0.1f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	Vertex{0.1f, -0.1f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f},
+	Vertex{-0.1f, -0.1f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f},
 };
 const Body::index_list Body::BITMAP_INDICES = {0, 1, 2, 2, 3, 0};
 const float Body::BITMAP_INIT_WIDTH = 1.0f;

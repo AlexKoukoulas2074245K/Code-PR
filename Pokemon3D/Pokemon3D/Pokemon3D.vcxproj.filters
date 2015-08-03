@@ -66,7 +66,7 @@
     <ClCompile Include="fontengine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="winconfig.cpp">
+    <ClCompile Include="config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -140,7 +140,10 @@
     <ClInclude Include="fontengine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="winconfig.h">
+    <ClInclude Include="config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="colors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

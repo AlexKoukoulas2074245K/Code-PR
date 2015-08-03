@@ -97,7 +97,11 @@ bool Shader::Initialize(
 	mcbd.MiscFlags = 0;
 
 	HR(device->CreateBuffer(&mcbd, NULL, &mcMatrixBuffer));
-
+	
+	/* Initialize constant color buffer */
+	mcbd.ByteWidth = sizeof(ColorBuffer);
+	HR(device->CreateBuffer(&mcbd, NULL, &mcColorBuffer));
+	
 	return true;
 }
 

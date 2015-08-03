@@ -3,11 +3,12 @@
 #include <list>
 
 #include "d3dcommon.h"
-#include "winconfig.h"
+#include "config.h"
 #include "pokedef.h"
 #include "common.h"
 #include "shader.h"
 #include "camera.h"
+#include "colors.h"
 
 /* Convenience macros */
 #define IACTIVE_SHADER mShaders[mActiveShaderType]
@@ -40,8 +41,12 @@ public:
 	bool PrepareHUD(HUDComponent* hudc);
 	bool PrepareObject(const ShaderType shader, Body* body);
 	void RenderModel(StaticModel* model);
-	void RenderHUD(HUDComponent* body);
-	void RenderText(const std::list<std::string>& chars, const float2& startPos, FontEngine* font);
+	void RenderHUD(HUDComponent* body, float4 color = COLOR_BLACK);
+	void RenderText(
+		const std::string& chars,
+		const float2& startPos,
+		FontEngine* font,
+		float4 color = COLOR_BLACK);
 	void PrepareFrame(
 		const mat4x4& currView,
 		const mat4x4& currProj,
@@ -56,13 +61,15 @@ private:
 	bool ShaderInitialization();
 	bool LayoutInitialization();
 	void ChangeActiveLayout(const ShaderType shader);
-	void setDepthRendering(const bool depthRendering);
+	void enableHUDRendering();
+	void disableHUDRendering();
 	void RenderObject(
 		const ShaderType shader,
 		const float3& pos,
 		const float3& rot,
 		const bool hud,
-		Body* body);
+		Body* body,
+		float4 color = COLOR_BLACK);
 
 private:
 	comptr<ID3D11Device> mDevice;
@@ -77,8 +84,11 @@ private:
 	comptr<ID3D11InputLayout> mGlobalDefaultLayout;
 	comptr<ID3D11InputLayout> mGlobalHUDLayout;
 	comptr<ID3D11RasterizerState> mRastState;
-	comptr<ID3D11SamplerState> mSampleState;	
-	bool mDepthRendering;
+	comptr<ID3D11SamplerState> mDefaultSampleState;
+	comptr<ID3D11SamplerState> mHUDSampleState;
+
+	bool mHUDRendering;
+	
 	uint mVideoCardMemory;
 	
 	std::string mVideoCardName;

@@ -12,7 +12,7 @@
 #include <dxerr.h>
 #include <xnamath.h>
 
-#include "winconfig.h"
+#include "config.h"
 
 #pragma comment (lib, "dxerr.lib")
 #pragma comment (lib, "dxgi.lib")
@@ -47,8 +47,6 @@ namespace d3dconst
 	static const DXGI_FORMAT TEXCOORD_FORMAT = DXGI_FORMAT_R32G32_FLOAT;
 	static const DXGI_FORMAT NORMAL_FORMAT = DXGI_FORMAT_R32G32B32_FLOAT;
 	static const D3D11_PRIMITIVE_TOPOLOGY PRIMITIVES = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	static const unsigned int MS_COUNT = 1;
-	static const unsigned int MS_QUAL = 0;
 	static const float BG_COLOR[4] = {184.0f / 255.0f, 136.0f / 255.0f, 249.0f / 255.0f, 1.0f};
 	static const char* const VS_PROFILE = "vs_5_0";
 	static const char* const PS_PROFILE = "ps_5_0";

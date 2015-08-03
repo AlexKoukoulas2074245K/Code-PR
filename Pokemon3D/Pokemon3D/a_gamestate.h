@@ -5,7 +5,7 @@
 class Renderer;
 class IOManager;
 class HIDManager;
-
+class FontEngine;
 class GameState
 {
 public:
@@ -18,10 +18,12 @@ public:
 	void setRenderer(const sptr<Renderer> renderer){ mRenderer = renderer; }
 	void setIOManager(const sptr<IOManager> ioManager){ mIOManager = ioManager; }
 	void setHIDManager(const sptr<HIDManager> hidManager){ mHIDManager = hidManager; }
+	void setFontEngine(const sptr<FontEngine> fontEngine) { mFontEngine = fontEngine; }
 
 protected:
 	bool mFinished;
 	sptr<Renderer> mRenderer;
 	sptr<IOManager> mIOManager;
 	sptr<HIDManager> mHIDManager;
+	sptr<FontEngine> mFontEngine;
 };
