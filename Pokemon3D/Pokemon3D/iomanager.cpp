@@ -39,24 +39,24 @@
 
 IOManager::IOManager()
 {
-	mSuppFormats[Format::OBJ] = ".obj"; 
-	mSuppFormats[Format::PNG] = ".png";
-	mSuppFormats[Format::HUD] = ".png";	
-	mSuppFormats[Format::FCF] = ".fcf";
+	m_suppFormats[Format::OBJ] = ".obj"; 
+	m_suppFormats[Format::PNG] = ".png";
+	m_suppFormats[Format::HUD] = ".png";	
+	m_suppFormats[Format::FCF] = ".fcf";
 
-	mFormatPaths[Format::OBJ] = "C:/Users/alex/Pictures/projects/pkmnrevo/models/";
-	mFormatPaths[Format::PNG] = "C:/Users/alex/Pictures/projects/pkmnrevo/textures/materials/";
-	mFormatPaths[Format::HUD] = "C:/Users/alex/Pictures/projects/pkmnrevo/textures/hud/";
-	mFormatPaths[Format::FCF] = "C:/Users/alex/Pictures/projects/pkmnrevo/config/";
+	m_formatPaths[Format::OBJ] = "C:/Users/alex/Pictures/projects/pkmnrevo/models/";
+	m_formatPaths[Format::PNG] = "C:/Users/alex/Pictures/projects/pkmnrevo/textures/materials/";
+	m_formatPaths[Format::HUD] = "C:/Users/alex/Pictures/projects/pkmnrevo/textures/hud/";
+	m_formatPaths[Format::FCF] = "C:/Users/alex/Pictures/projects/pkmnrevo/config/";
 }
 IOManager::~IOManager(){}
 
-void IOManager::SetRenderer(const sptr<Renderer>& renderer)
+void IOManager::setRenderer(const sptr<Renderer>& renderer)
 {
-	mRenderer = renderer;
+	m_pRenderer = renderer;
 }
 
-bool IOManager::GetFileContent(const str& path, str_list* outList)
+bool IOManager::getFileContent(const str& path, str_list* outList)
 {
 	std::ifstream file;
 	file.open(path.c_str());
@@ -70,52 +70,52 @@ bool IOManager::GetFileContent(const str& path, str_list* outList)
 
 /* Attempt to assign to the out parameter the entry value for the given id 
 from the preloaded bodies */
-void IOManager::GetBody(const str& id, Body& outBody)
+void IOManager::getBody(const str& id, Body& outBody)
 {
 	str path;
-	GetPathOf(id, Format::OBJ, path);
-	if (mPrelBodies.count(path))
+	getPathOf(id, Format::OBJ, path);
+	if (m_prelBodies.count(path))
 	{
-		outBody = mPrelBodies[path];
+		outBody = m_prelBodies[path];
 		return;
 	}
 	LOGLN(("Body does not exist: " + id).c_str());
 }
  
 /* Forces a GetBody by loading first */
-void IOManager::ForceGetBody(const str& id, Body& outBody)
+void IOManager::forceGetBody(const str& id, Body& outBody)
 {
 	str matPath;
-	GetPathOf(id, Format::PNG, matPath);
+	getPathOf(id, Format::PNG, matPath);
 	outBody.setSingleTexture(matPath);
-	LoadBody(id, outBody.modTexturesToLoad().front());
-	GetBody(id, outBody);
+	loadBody(id, outBody.modTexturesToLoad().front());
+	getBody(id, outBody);
 }
 
 /* Loads a body in the preloaded mmap */
-void IOManager::LoadBody(const str& id, const str& mat)
+void IOManager::loadBody(const str& id, const str& mat)
 {
 	str path;
-	GetPathOf(id, Format::OBJ, path);
+	getPathOf(id, Format::OBJ, path);
 
-	if (mPrelBodies.count(path)) return;
+	if (m_prelBodies.count(path)) return;
 	Body resultBody;
 	resultBody.setSingleTexture(mat);
 	if (LoadOBJFromFile(path, &resultBody))
 	{
-		mRenderer->PrepareObject(Renderer::ShaderType::DEFAULT, &resultBody);
-		mPrelBodies[path] = resultBody;
+		m_pRenderer->prepareObject(Renderer::ShaderType::DEFAULT, &resultBody);
+		m_prelBodies[path] = resultBody;
 	}
 }
  
 /* Loads all obj files from the directory given */
-void IOManager::LoadMultipleBodies(const str& directory)
+void IOManager::loadMultipleBodies(const str& directory)
 {
 	str_list paths;
-	GetAllFilenames(directory, paths);
+	getAllFilenames(directory, paths);
 	for (str_list_iter iter = paths.begin();
 		iter != paths.end();
-		++iter) LoadBody(*iter, std::string());
+		++iter) loadBody(*iter, std::string());
 }
 
 /* Loads all bodies specified in a lvl file */
@@ -157,7 +157,7 @@ void IOManager::LoadMultipleBodies(const str& directory)
    Another approach would be to make the lake pieces be smaller than the standard tile size but
    I think that could end up being more complex.
    */
-void IOManager::GetAllBodiesFromLevel(
+void IOManager::getAllBodiesFromLevel(
 	const str& lvlFilename,
 	const float tileSize,
 	uint3& outDims,
@@ -220,7 +220,7 @@ void IOManager::GetAllBodiesFromLevel(
 			str houseName = houseComps[0];
 
 			Body b;
-			ForceGetBody(houseName, b);
+			forceGetBody(houseName, b);
 			float houseX = std::stof(houseLoc[0]);
 			float houseZ = std::stof(houseLoc[1]);
 			float3 rot = {};
@@ -297,7 +297,7 @@ void IOManager::GetAllBodiesFromLevel(
 					/* Erase the last underscore created by the last name component */
 					newObjectName.erase(newObjectName.end() - 1);
 
-					ForceGetBody(newObjectName, b);
+					forceGetBody(newObjectName, b);
 					if (objectLastName.compare(LEVEL_FLOOR_NAME) == 0 ||
 						objectLastName.compare(LEVEL_WILD_NAME) == 0) objPos.y = -tileSize / 2;
 					else if (objectLastName.compare(LEVEL_SHORT_NAME) == 0) objPos.y = LEVEL_SHORT_HEIGHT;
@@ -317,7 +317,7 @@ void IOManager::GetAllBodiesFromLevel(
 				/* No special case, load the object normally */
 				else
 				{
-					ForceGetBody(objectName, b);
+					forceGetBody(objectName, b);
 					if (objectLastName.compare(LEVEL_FLOOR_NAME) == 0 ||
 						objectLastName.compare(LEVEL_WILD_NAME) == 0) objPos.y = -tileSize / 2;
 					else if (objectLastName.compare(LEVEL_SHORT_NAME) == 0) objPos.y = LEVEL_SHORT_HEIGHT;
@@ -331,7 +331,7 @@ void IOManager::GetAllBodiesFromLevel(
 				if (nameComps.size() >= 3 && !nameComps[1].compare(LEVEL_LAKE_PIECE_NAME))
 				{
 					Body lakePiece;
-					ForceGetBody(LEVEL_LAKE_PIECE_FULL_NAME, lakePiece);
+					forceGetBody(LEVEL_LAKE_PIECE_FULL_NAME, lakePiece);
 					objPos.y = LEVEL_CLOSER;
 					float3 rot = {};
 					StaticModel lakeRes(lakePiece, objPos, rot);
@@ -345,7 +345,7 @@ void IOManager::GetAllBodiesFromLevel(
 					if (isLakeLeft || isLakeRight)
 					{
 						Body b; 
-						ForceGetBody(LEVEL_FILL_OBJECT_FULL_NAME, b);
+						forceGetBody(LEVEL_FILL_OBJECT_FULL_NAME, b);
 						float3 pos;
 						pos.x = isLakeLeft ? objPos.x + tileSize : objPos.x - tileSize;
 						pos.y = LEVEL_CLOSEST;
@@ -361,7 +361,7 @@ void IOManager::GetAllBodiesFromLevel(
 	
 	/* Level filler piece creation (for empty or transparent areas) */
 	Body uniFloor;
-	ForceGetBody(LEVEL_FILL_OBJECT_FULL_NAME, uniFloor);
+	forceGetBody(LEVEL_FILL_OBJECT_FULL_NAME, uniFloor);
 	uniFloor.setDimensions({maxWidth, 1.0f, maxDepth});
 	float3 uniFloorPos{
 		-maxWidth / 2 + tileSize / 2,
@@ -373,7 +373,7 @@ void IOManager::GetAllBodiesFromLevel(
 }
 
 /* Returns the number of filenames from the directory supplied */
-void IOManager::GetAllFilenames(const str& directory, str_list& outFilenames)
+void IOManager::getAllFilenames(const str& directory, str_list& outFilenames)
 {
 	str dirWithoutPostfix(directory.begin(), directory.end() - 1);
 	WIN32_FIND_DATA findData;
@@ -390,9 +390,9 @@ void IOManager::GetAllFilenames(const str& directory, str_list& outFilenames)
 }
 
 /* Tests wether the path given ends with the given suffix */
-bool IOManager::ValidPath(const str& path, const Format frmt)
+bool IOManager::validPath(const str& path, const Format frmt)
 {
-	str format = mSuppFormats[frmt];
+	str format = m_suppFormats[frmt];
 	str_sizet pathSize = path.size();
 	if (pathSize <= 3 ||
 		path[pathSize - 3] != format[1] ||
@@ -401,9 +401,9 @@ bool IOManager::ValidPath(const str& path, const Format frmt)
 	return true;
 }
 
-void IOManager::GetPathOf(const str& id, const Format frmt, str& outStr)
+void IOManager::getPathOf(const str& id, const Format frmt, str& outStr)
 {
-	if (!ValidPath(id, frmt)) outStr = mFormatPaths[frmt] + id + mSuppFormats[frmt];
+	if (!validPath(id, frmt)) outStr = m_formatPaths[frmt] + id + m_suppFormats[frmt];
 	else outStr = id;
 }
 

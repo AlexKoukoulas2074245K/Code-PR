@@ -1,5 +1,4 @@
 #pragma once
-
 #include <string>
 
 #include "pokedef.h"
@@ -12,17 +11,19 @@ public:
 	HUDComponent();
 	~HUDComponent();
 
-	Body* getModBodyPointer() { return &mBody; }
-	const Body& getBody() const { return mBody; }
-	const float2& getPosition() const { return mPosition; }
-	const float2& getDimensions() const { return mDimensions; }
+	void changeTexCoords(const float2 coords[4]);
+
+	Body* getModBodyPointer();
+	const Body& getBody() const;
+	const float2& getPosition() const;
+	const float2& getDimensions() const;
+
 	void setPosition(const float x, const float y);
 	void setDimensions(const float width, const float height);
 	void setImage(const std::string& imageName, const sptr<IOManager> iom);
-	void ChangeTexCoords(const float2 coords[4]);
 
 private:
-	Body mBody;
-	float2 mPosition;
-	float2 mDimensions;
+	Body m_body;
+	float2 m_position;
+	float2 m_dimensions;
 };

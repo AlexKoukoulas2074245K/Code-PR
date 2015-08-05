@@ -11,22 +11,26 @@ class IOManager;
 class FontEngine
 {
 public:
-	FontEngine(const std::string& fontName): mName(fontName){}
-	~FontEngine(){}
+	FontEngine(const std::string& fontName);
+	~FontEngine();
 
-	void PrepareFontEngine(sptr<IOManager> iom, sptr<Renderer> rend);
-	const float2& getGlyphPosition(const char glyph){ return mGlyphMap[glyph]; }
-	HUDComponent* modGlyphCompPointer(const char& glyph) { return &mGlyphComps[glyph]; }
-	const std::string& getName() const { return mName; }
-	Texture& modTexture() { return mFontTexture; }
-	void setTexture(const Texture& texture) { mFontTexture = texture; }
+	void prepareFontEngine(sptr<IOManager> iom, sptr<Renderer> rend);
+
+	const float2& getGlyphPosition(const char glyph);
+	const std::string& getName() const;
+	
+	HUDComponent* modGlyphCompPointer(const char& glyph);
+	Texture* modTexture();
+
+	void setTexture(const Texture& texture);
 
 private:
 	static const uint FONT_CELL_SIZE = 16;
 	static const float FONT_IMAGE_SIZE;
-		
-	std::string mName;
-	Texture mFontTexture;
-	std::map<char, float2> mGlyphMap;
-	std::map<char, HUDComponent> mGlyphComps;
+
+private:
+	std::string m_name;
+	Texture m_fontTexture;
+	std::map<char, float2> m_glyphMap;
+	std::map<char, HUDComponent> m_glyphComps;
 };

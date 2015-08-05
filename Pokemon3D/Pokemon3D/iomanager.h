@@ -25,17 +25,17 @@ public:
 	~IOManager();
 
 	/* Renderer setting */
-	void SetRenderer(const sptr<Renderer>& renderer);
+	void setRenderer(const sptr<Renderer>& renderer);
 
 	/* Retrieves the content of the specified file and returns it split by newline */
-	bool GetFileContent(const str& path, str_list* outList);
+	bool getFileContent(const str& path, str_list* outList);
 
 	/* Renderable body methods */
-	void ForceGetBody(const str& name, Body& outBody);
-	void GetBody(const str& name, Body& outBody);
-	void LoadBody(const str& name, const str& mat);
-	void LoadMultipleBodies(const str& directory);
-	void GetAllBodiesFromLevel(
+	void forceGetBody(const str& name, Body& outBody);
+	void getBody(const str& name, Body& outBody);
+	void loadBody(const str& name, const str& mat);
+	void loadMultipleBodies(const str& directory);
+	void getAllBodiesFromLevel(
 		const str& lvlFilename,
 		const float tileSize,
 		uint3& outDims,
@@ -43,11 +43,11 @@ public:
 		std::list<StaticModel>& outLakeList,
 		unsigned int**& ppoutMap);
 
-	void GetPathOf(const str& id, const Format frmt, str& strOut);
-	void GetAllFilenames(const str& directory, str_list &outFilenames);
+	void getPathOf(const str& id, const Format frmt, str& strOut);
+	void getAllFilenames(const str& directory, str_list &outFilenames);
 
 private:
-	bool IOManager::ValidPath(const str& path, const Format frmt);
+	bool IOManager::validPath(const str& path, const Format frmt);
 
 private:
 	static const char LEVEL_COMP_SEP = '|';
@@ -57,8 +57,9 @@ private:
 	static const char VALUE_SEP = ',';
 	static const char NAME_POS_SEP = ':';
 
-	sptr<Renderer> mRenderer;
-	std::map<str, Body> mPrelBodies;
-	std::map<Format, str> mSuppFormats;
-	std::map<Format, str> mFormatPaths;
+private:
+	sptr<Renderer> m_pRenderer;
+	std::map<str, Body> m_prelBodies;
+	std::map<Format, str> m_suppFormats;
+	std::map<Format, str> m_formatPaths;
 };

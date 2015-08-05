@@ -21,18 +21,20 @@ public:
 	/* Standard gamestate methods and queue accessors */
 	GSQueue();	
 	~GSQueue();
-	bool Initialize(const HWND& hWindow);
-	void HandleInput(const MSG& msg);
-	void Update();
-	void Render();
-	bool isEmpty() const { return mEmpty; }
+	
+	bool initialize(const HWND& hWindow);
+	void handleInput(const MSG& msg);
+	void update();
+	void render();
+
+	bool isEmpty() const;
 
 private:
-	bool mEmpty;
-	gs_list mStates;
-	sptr<Renderer> mRenderer;
-	sptr<IOManager> mIOManager;
-	sptr<HIDManager> mHIDManager;
-	sptr<FontEngine> mFontEngine;
-	uptr<FpsCounter> mFpsc;
+	bool m_isEmpty;
+	gs_list m_states;
+	sptr<Renderer> m_pRenderer;
+	sptr<IOManager> m_pIOManager;
+	sptr<HIDManager> m_pHIDManager;
+	sptr<FontEngine> m_pFontEngine;
+	uptr<FpsCounter> m_pFpsc;
 };

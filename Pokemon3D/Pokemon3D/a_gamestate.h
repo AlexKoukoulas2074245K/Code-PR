@@ -10,20 +10,20 @@ class GameState
 {
 public:
 	virtual ~GameState(){};
-	virtual bool Initialize() = 0;
-	virtual void Update() = 0;
-	virtual void Render() = 0;
+	virtual bool initialize() = 0;
+	virtual void update() = 0;
+	virtual void render() = 0;
 
-	bool isFinished() const { return mFinished; }
-	void setRenderer(const sptr<Renderer> renderer){ mRenderer = renderer; }
-	void setIOManager(const sptr<IOManager> ioManager){ mIOManager = ioManager; }
-	void setHIDManager(const sptr<HIDManager> hidManager){ mHIDManager = hidManager; }
-	void setFontEngine(const sptr<FontEngine> fontEngine) { mFontEngine = fontEngine; }
+	bool isFinished() const { return m_isFinished; }
+	void setRenderer(const sptr<Renderer> pRenderer){ m_pRenderer = pRenderer; }
+	void setIOManager(const sptr<IOManager> pIoManager){ m_pIOManager = pIoManager; }
+	void setHIDManager(const sptr<HIDManager> pHidManager){ m_pHIDManager = pHidManager; }
+	void setFontEngine(const sptr<FontEngine> pFontEngine) { m_pFontEngine = pFontEngine; }
 
 protected:
-	bool mFinished;
-	sptr<Renderer> mRenderer;
-	sptr<IOManager> mIOManager;
-	sptr<HIDManager> mHIDManager;
-	sptr<FontEngine> mFontEngine;
+	bool m_isFinished;
+	sptr<Renderer> m_pRenderer;
+	sptr<IOManager> m_pIOManager;
+	sptr<HIDManager> m_pHIDManager;
+	sptr<FontEngine> m_pFontEngine;
 };

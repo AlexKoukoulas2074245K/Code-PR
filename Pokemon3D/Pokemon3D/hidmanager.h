@@ -21,15 +21,15 @@ public:
 	HIDManager();
 	~HIDManager();
 	
-	void UpdateState(const MSG& msg);
-	void CompleteFrame();
+	void updateState(const MSG& msg);
+	void completeFrame();
 
-	bool KeyDown(const key_t key);
-	bool KeyUp(const key_t key);
-	bool KeyTapped(const key_t key);
+	bool keyDown(const key_t key);
+	bool keyUp(const key_t key);
+	bool keyTapped(const key_t key);
 
 private:
-	key_dict mKeyDict;
-	key_t mCurrState;
-	key_t mPrevState;
+	key_dict m_keyDict;
+	key_t m_currState;
+	key_t m_prevState;
 };

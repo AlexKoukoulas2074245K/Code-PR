@@ -1,93 +1,157 @@
 #include "camera.h"
 #include "common.h"
 
-#define ANGLE static_cast<float>(D3DXToRadian(90))
-#define VALID_ANGLE_LO 1
-#define VALID_ANGLE_HI 4
-#define N_ANGLES 6
-#define TURN_SPEED 0.1f
-#define MOVE_SPEED 0.1f
 
 const float Camera::ZNEAR = 0.1f;
 const float Camera::ZFAR = 40.0f;
 const float Camera::FOV = (FLOAT) XMConvertToRadians(45);
 const unsigned int Camera::CAM_FRUST_NSIDES = 6U;
 
+const float Camera::ANGLE = static_cast<float>(D3DXToRadian(90));
+const size_t Camera::VALID_ANGLE_LO = 1;
+const size_t Camera::VALID_ANGLE_HI = 4;
+const size_t Camera::N_ANGLES = 6;
+const float Camera::TURN_SPEED = 0.1f;
+const float Camera::MOVE_SPEED = 0.1f;
+
 Camera::Camera(): Camera(vec3f()){}
 Camera::Camera(const vec3f& position) :
-mPosition(position),
-mUp(vec3f(0.0f, 1.0f, 0.0f)),
-mLook(vec3f(0.0f, 0.0f, 1.0f)),
-mRight(vec3f(1.0f, 0.0f, 0.0f)),
-mTurning(false),
-mMoving(false),
-mCurrAngleIndex(1),
-mYaw(0.0f),
-mTargetYaw(mYaw),
-mPitch(0.0f),
-mRoll(0.0f),
-mTargetPos(0.0f)
+m_position(position),
+m_up(vec3f(0.0f, 1.0f, 0.0f)),
+m_look(vec3f(0.0f, 0.0f, 1.0f)),
+m_right(vec3f(1.0f, 0.0f, 0.0f)),
+m_isTurning(false),
+m_isMoving(false),
+m_currAngleIndex(1),
+m_yaw(0.0f),
+m_targetYaw(m_yaw),
+m_pitch(0.0f),
+m_roll(0.0f),
+m_targetPos(0.0f)
 {
-	mOriMap[1] = Orientation::SOUTH;
-	mOriMap[2] = Orientation::WEST;
-	mOriMap[3] = Orientation::NORTH;
-	mOriMap[4] = Orientation::EAST;
-	mValidAngles = {{-ANGLE, 0.0f, ANGLE, 2*ANGLE, 3*ANGLE, 4*ANGLE}};	
-	D3DXMatrixPerspectiveFovLH(&mProjMatrix, FOV, AppConfig::ASPECT, ZNEAR, ZFAR);
+	m_oriMap[1] = Orientation::SOUTH;
+	m_oriMap[2] = Orientation::WEST;
+	m_oriMap[3] = Orientation::NORTH;
+	m_oriMap[4] = Orientation::EAST;
+	m_validAngles = {{-ANGLE, 0.0f, ANGLE, 2*ANGLE, 3*ANGLE, 4*ANGLE}};	
+	D3DXMatrixPerspectiveFovLH(&m_projMatrix, FOV, AppConfig::ASPECT, ZNEAR, ZFAR);
 }
 Camera::~Camera(){}
 
-void Camera::MoveTo(const float targetPos)
+void Camera::moveTo(const float targetPos)
 {
-	if (mMoving || mTurning) return;
-	mTargetPos = targetPos;
-	mMoving = true;
-}
-void Camera::Update()
-{
-	if (mTurning && util::lerp(mYaw, mTargetYaw, TURN_SPEED, mYaw))
-	{
-		mTurning = false;
-		mYaw = mValidAngles[mCurrAngleIndex];
-		mTargetYaw = mYaw;
-	}
-	else if (mMoving)
-	{
-		mPosition += mLook * MOVE_SPEED;
-		if (mOriMap[mCurrAngleIndex] == NORTH)
-		{
-			if (mPosition.z <= mTargetPos) { mMoving = false; mPosition.z = mTargetPos; }
-		}
-		else if (mOriMap[mCurrAngleIndex] == SOUTH)
-		{		
-			if (mPosition.z >= mTargetPos) { mMoving = false; mPosition.z = mTargetPos; }
-		}
-		else if (mOriMap[mCurrAngleIndex] == WEST)
-		{
-			if (mPosition.x >= mTargetPos) { mMoving = false; mPosition.x = mTargetPos; }
-		}
-		else
-		{
-			if (mPosition.x <= mTargetPos) { mMoving = false; mPosition.x = mTargetPos; }
-		}
-	}
+	if (m_isMoving || m_isTurning) return;
+	m_targetPos = targetPos;
+	m_isMoving = true;
 }
 
-void Camera::Turn(const cam_dir& dir)
+void Camera::turn(const Direction& dir)
 {
-	if (mTurning || mMoving) return;
-	mTurning = true;
+	if (m_isTurning || m_isMoving) return;
+	m_isTurning = true;
 
 	if (dir == Direction::LEFT)
 	{
-		if (mCurrAngleIndex == VALID_ANGLE_LO) { mCurrAngleIndex = VALID_ANGLE_HI; mTargetYaw = mValidAngles[0]; }
-		else { mCurrAngleIndex--; mTargetYaw = mValidAngles[mCurrAngleIndex]; }
+		if (m_currAngleIndex == VALID_ANGLE_LO)
+		{
+			m_currAngleIndex = VALID_ANGLE_HI;
+			m_targetYaw = m_validAngles[0]; 
+		}
+		else 
+		{
+			m_currAngleIndex--;
+			m_targetYaw = m_validAngles[m_currAngleIndex]; 
+		}
 	}
 	else if (dir == Direction::RIGHT)
 	{
-		if (mCurrAngleIndex == VALID_ANGLE_HI){ mCurrAngleIndex = VALID_ANGLE_LO; mTargetYaw = mValidAngles[N_ANGLES - 1]; }
-		else { mCurrAngleIndex++; mTargetYaw = mValidAngles[mCurrAngleIndex]; }
+		if (m_currAngleIndex == VALID_ANGLE_HI)
+		{
+			m_currAngleIndex = VALID_ANGLE_LO;
+			m_targetYaw = m_validAngles[N_ANGLES - 1]; 
+		}
+		else 
+		{
+			m_currAngleIndex++;
+			m_targetYaw = m_validAngles[m_currAngleIndex]; 
+		}
 	}
+}
+
+void Camera::update()
+{
+	if (m_isTurning && util::lerp(m_yaw, m_targetYaw, TURN_SPEED, m_yaw))
+	{
+		m_isTurning = false;
+		m_yaw = m_validAngles[m_currAngleIndex];
+		m_targetYaw = m_yaw;
+	}
+	else if (m_isMoving)
+	{
+		m_position += m_look * MOVE_SPEED;
+		if (m_oriMap[m_currAngleIndex] == NORTH && m_position.z <= m_targetPos)
+		{
+			m_isMoving = false;
+			m_position.z = m_targetPos;
+		}
+		else if (m_oriMap[m_currAngleIndex] == SOUTH && m_position.z >= m_targetPos)
+		{		
+			m_isMoving = false;
+			m_position.z = m_targetPos;
+		}
+		else if (m_oriMap[m_currAngleIndex] == WEST && m_position.x >= m_targetPos)
+		{
+			m_isMoving = false;
+			m_position.x = m_targetPos; 
+		}
+		else if (m_oriMap[m_currAngleIndex] == EAST&& m_position.x <= m_targetPos)
+		{
+			m_isMoving = false;
+			m_position.x = m_targetPos;
+		}
+	}
+}
+
+const mat4x4& Camera::computeViewMatrix()
+{
+	m_up = vec3f(0.0f, 1.0f, 0.0f);
+	m_look = vec3f(0.0f, 0.0f, 1.0f);
+	m_right = vec3f(1.0f, 0.0f, 0.0f);
+
+	mat4x4 yawMatrix;
+	D3DXMatrixRotationAxis(&yawMatrix, &m_up, m_yaw);
+	D3DXVec3TransformCoord(&m_look, &m_look, &yawMatrix);
+	D3DXVec3TransformCoord(&m_right, &m_right, &yawMatrix);
+
+	mat4x4 pitchMatrix;
+	D3DXMatrixRotationAxis(&pitchMatrix, &m_right, m_pitch);
+	//D3DXVec3TransformCoord(&mLook, &mLook, &pitchMatrix);
+	D3DXVec3TransformCoord(&m_up, &m_up, &pitchMatrix);
+
+	mat4x4 rollMatrix;
+	D3DXMatrixRotationAxis(&rollMatrix, &m_look, m_roll);
+	D3DXVec3TransformCoord(&m_right, &m_right, &rollMatrix);
+	D3DXVec3TransformCoord(&m_up, &m_up, &rollMatrix);
+
+	D3DXMatrixIdentity(&m_viewMatrix);
+
+	m_viewMatrix._11 = m_right.x; 
+	m_viewMatrix._21 = m_right.y;  
+	m_viewMatrix._31 = m_right.z;  
+
+	m_viewMatrix._12 = m_up.x;  
+	m_viewMatrix._22 = m_up.y;
+	m_viewMatrix._32 = m_up.z;  
+
+	m_viewMatrix._13 = m_look.x;
+	m_viewMatrix._23 = m_look.y;
+	m_viewMatrix._33 = m_look.z;
+
+	m_viewMatrix._41 = -D3DXVec3Dot(&m_position, &m_right);
+	m_viewMatrix._42 = -D3DXVec3Dot(&m_position, &m_up);
+	m_viewMatrix._43 = -D3DXVec3Dot(&m_position, &m_look);
+
+	return m_viewMatrix;
 }
 
 void Camera::getCameraFrustum(
@@ -145,36 +209,12 @@ void Camera::getCameraFrustum(
 	D3DXPlaneNormalize(&outFrustum.planes[5], &outFrustum.planes[5]);	
 }
 
-const mat4x4& Camera::getViewMatrix()
-{
-	mUp = vec3f(0.0f, 1.0f, 0.0f);
-	mLook = vec3f(0.0f, 0.0f, 1.0f);
-	mRight = vec3f(1.0f, 0.0f, 0.0f);
+const mat4x4& Camera::getProjMatrix() const { return m_projMatrix; }
+vec4f Camera::getPosition() const { return vec4f{m_position.x, m_position.y, m_position.z, 1.0f}; }
+vec3f Camera::getPosition3() const { return m_position; }
+Camera::Orientation Camera::getOrientation() const { return m_oriMap.at(m_currAngleIndex); }
+bool Camera::isMoving() const { return m_isMoving; }
+bool Camera::isTurning() const { return m_isTurning; }
 
-	mat4x4 yawMatrix;
-	D3DXMatrixRotationAxis(&yawMatrix, &mUp, mYaw);
-	D3DXVec3TransformCoord(&mLook, &mLook, &yawMatrix);
-	D3DXVec3TransformCoord(&mRight, &mRight, &yawMatrix);
-
-	mat4x4 pitchMatrix;
-	D3DXMatrixRotationAxis(&pitchMatrix, &mRight, mPitch);
-	//D3DXVec3TransformCoord(&mLook, &mLook, &pitchMatrix);
-	D3DXVec3TransformCoord(&mUp, &mUp, &pitchMatrix);
-
-	mat4x4 rollMatrix;
-	D3DXMatrixRotationAxis(&rollMatrix, &mLook, mRoll);
-	D3DXVec3TransformCoord(&mRight, &mRight, &rollMatrix);
-	D3DXVec3TransformCoord(&mUp, &mUp, &rollMatrix);
-
-	D3DXMatrixIdentity(&mViewMatrix);
-
-	mViewMatrix._11 = mRight.x;  mViewMatrix._12 = mUp.x;  mViewMatrix._13 = mLook.x;
-	mViewMatrix._21 = mRight.y;  mViewMatrix._22 = mUp.y;  mViewMatrix._23 = mLook.y;
-	mViewMatrix._31 = mRight.z;  mViewMatrix._32 = mUp.z;  mViewMatrix._33 = mLook.z;
-
-	mViewMatrix._41 = -D3DXVec3Dot(&mPosition, &mRight);
-	mViewMatrix._42 = -D3DXVec3Dot(&mPosition, &mUp);
-	mViewMatrix._43 = -D3DXVec3Dot(&mPosition, &mLook);
-
-	return mViewMatrix;
-}
+void Camera::setPosition(const vec3f& pos) { m_position = pos; }
+void Camera::setPosition(const float x, const float y, const float z) { m_position = vec3f{x, y, z}; }

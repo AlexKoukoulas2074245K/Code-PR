@@ -7,7 +7,7 @@
 Shader::Shader(){}
 Shader::~Shader(){}
 
-bool Shader::Initialize(
+bool Shader::initialize(
 	comptr<ID3D11Device> const device,
 	const std::string& coreFname)
 {
@@ -25,7 +25,7 @@ bool Shader::Initialize(
 		d3dconst::VS_PROFILE,
 		D3D10_SHADER_ENABLE_STRICTNESS,
 		NULL,
-		&mVSBuffer,
+		&m_pVSBuffer,
 		&errorMessage);
 
 	if (FAILED(result))
@@ -46,10 +46,10 @@ bool Shader::Initialize(
 
 	/* Vertex shader creation */
 	HR(device->CreateVertexShader(
-		mVSBuffer->GetBufferPointer(),
-		mVSBuffer->GetBufferSize(),
+		m_pVSBuffer->GetBufferPointer(),
+		m_pVSBuffer->GetBufferSize(),
 		NULL,
-		&mVertexShader));
+		&m_pVertexShader));
 
 	/* Pixel shader compilation */
 	result = D3DCompileFromFile(
@@ -60,7 +60,7 @@ bool Shader::Initialize(
 		d3dconst::PS_PROFILE,
 		D3D10_SHADER_ENABLE_STRICTNESS,
 		NULL,
-		&mPSBuffer,
+		&m_pPSBuffer,
 		&errorMessage);
 	
 	if (FAILED(result))
@@ -81,10 +81,10 @@ bool Shader::Initialize(
 
 	/* Pixel shader creation */
 	HR(device->CreatePixelShader(
-		mPSBuffer->GetBufferPointer(),
-		mPSBuffer->GetBufferSize(),
+		m_pPSBuffer->GetBufferPointer(),
+		m_pPSBuffer->GetBufferSize(),
 		NULL,
-		&mPixelShader));
+		&m_pPixelShader));
 
 
 	/* Initialize constant matrix buffer */
@@ -96,12 +96,19 @@ bool Shader::Initialize(
 	mcbd.StructureByteStride = 0;
 	mcbd.MiscFlags = 0;
 
-	HR(device->CreateBuffer(&mcbd, NULL, &mcMatrixBuffer));
+	HR(device->CreateBuffer(&mcbd, NULL, &m_pMatrixBuffer));
 	
 	/* Initialize constant color buffer */
 	mcbd.ByteWidth = sizeof(ColorBuffer);
-	HR(device->CreateBuffer(&mcbd, NULL, &mcColorBuffer));
+	HR(device->CreateBuffer(&mcbd, NULL, &m_pColorBuffer));
 	
 	return true;
 }
+
+comptr<ID3D11Buffer> Shader::getMatrixBuffer() const { return m_pMatrixBuffer; }
+comptr<ID3D11Buffer> Shader::getColorBuffer() const { return m_pColorBuffer; }
+comptr<ID3D11VertexShader> Shader::getVertexShader() const { return m_pVertexShader; }
+comptr<ID3D11PixelShader> Shader::getPixelShader() const { return m_pPixelShader; }
+void* Shader::getByteCode() const { return m_pVSBuffer->GetBufferPointer(); }
+size_t Shader::getByteCodeLength() const { return m_pVSBuffer->GetBufferSize(); }
 

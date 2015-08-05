@@ -7,13 +7,15 @@ class GSPlay: public GameState
 {
 public:
 	GSPlay();
-	~GSPlay(){};
-	bool Initialize();
-	void Update();
-	void Render();
+	~GSPlay();
+
+	bool initialize();
+	void update();
+	void render();
 
 private:
 	static const vec3f PLR_START_LOC;
-	sptr<Player> mPlayer;
-	sptr<Level> mLevel;
+
+	sptr<Player> m_pPlayer;
+	sptr<Level> m_pLevel;
 };

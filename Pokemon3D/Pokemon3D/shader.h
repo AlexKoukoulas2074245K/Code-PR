@@ -19,28 +19,30 @@ public:
 
 	struct ColorBuffer
 	{
+		int enableColor;
+		float3 padding;
 		float4 color;
 	};
 
 	Shader();
 	~Shader();
 
-	bool Initialize(
+	bool initialize(
 		comptr<ID3D11Device> const device,
 		const std::string& coreFname);
 
-	comptr<ID3D11Buffer> getMatrixBuffer() const { return mcMatrixBuffer; }
-	comptr<ID3D11Buffer> getColorBuffer() const { return mcColorBuffer; }
-	comptr<ID3D11VertexShader> getVertexShader() const { return mVertexShader; }
-	comptr<ID3D11PixelShader> getPixelShader() const { return mPixelShader; }
-	void* getByteCode() const { return mVSBuffer->GetBufferPointer(); }
-	size_t getByteCodeLength() const { return mVSBuffer->GetBufferSize(); }
+	comptr<ID3D11Buffer> getMatrixBuffer() const;
+	comptr<ID3D11Buffer> getColorBuffer() const;
+	comptr<ID3D11VertexShader> getVertexShader() const;
+	comptr<ID3D11PixelShader> getPixelShader() const;
+	void* getByteCode() const;
+	size_t getByteCodeLength() const;
 
 private:
-	comptr<ID3D10Blob> mVSBuffer;
-	comptr<ID3D10Blob> mPSBuffer;
-	comptr<ID3D11VertexShader> mVertexShader;
-	comptr<ID3D11PixelShader> mPixelShader;
-	comptr<ID3D11Buffer> mcMatrixBuffer;
-	comptr<ID3D11Buffer> mcColorBuffer;
+	comptr<ID3D10Blob> m_pVSBuffer;
+	comptr<ID3D10Blob> m_pPSBuffer;
+	comptr<ID3D11VertexShader> m_pVertexShader;
+	comptr<ID3D11PixelShader> m_pPixelShader;
+	comptr<ID3D11Buffer> m_pMatrixBuffer;
+	comptr<ID3D11Buffer> m_pColorBuffer;
 };

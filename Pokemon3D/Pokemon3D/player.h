@@ -11,14 +11,14 @@ public:
 	Player(const vec3f& pos, const sptr<Level>& level);
 	~Player();
 
-	void FindPosition();
-	void Update(const sptr<HIDManager> HIDManager);
-	uptr<Camera>& getCamera() { return mCamera; }
+	void computePosition();
+	void update(const sptr<HIDManager> HIDManager);
+	uptr<Camera>& modCameraPointer();
 
 private:
 
-	uptr<Camera> mCamera;
-	const sptr<Level>& mLevel;
-	uint2 mLevelCoords;
-	vec3f mLevelPos;
+	uptr<Camera> m_pCamera;
+	const sptr<Level>& m_pLevel;
+	uint2 m_levelCoords;
+	vec3f m_levelPos;
 };

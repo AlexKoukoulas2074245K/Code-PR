@@ -6,28 +6,28 @@ class StaticModel
 {
 public:
 	StaticModel(const Body& body, const float3& pos, const float3& rot):
-	mBody(body),
-	mPos(pos),
-	mRot(rot){};
+	m_body(body),
+	m_pos(pos),
+	m_rot(rot){};
 	~StaticModel(){};
 
-	void setPos(const float3& pos) { mPos = pos; }
-	void setX(const float x) { mPos.x = x; }
-	void setY(const float y) { mPos.y = y; }
-	void setZ(const float z) { mPos.z = z; }
+	void setPos(const float3& pos) { m_pos = pos; }
+	void setX(const float x) { m_pos.x = x; }
+	void setY(const float y) { m_pos.y = y; }
+	void setZ(const float z) { m_pos.z = z; }
 
-	void setRot(const float3& rot) { mRot = rot; }
-	void setRotX(const float rotX) { mRot.x = rotX; }
-	void setRoty(const float rotY) { mRot.y = rotY; }
-	void setRotZ(const float rotZ) { mRot.z = rotZ; }
+	void setRot(const float3& rot) { m_rot = rot; }
+	void setRotX(const float rotX) { m_rot.x = rotX; }
+	void setRoty(const float rotY) { m_rot.y = rotY; }
+	void setRotZ(const float rotZ) { m_rot.z = rotZ; }
 	
-	Body* getModBodyPointer() { return &mBody; }
-	const Body& getBody() const { return mBody; }
-	const float3& getPos() const { return mPos; }
-	const float3& getRot() const { return mRot; }
+	Body* modBodyPointer() { return &m_body; }
+	const Body& getBody() const { return m_body; }
+	const float3& getPos() const { return m_pos; }
+	const float3& getRot() const { return m_rot; }
 
 private:
-	Body mBody;
-	float3 mPos;
-	float3 mRot;
+	Body m_body;
+	float3 m_pos;
+	float3 m_rot;
 };

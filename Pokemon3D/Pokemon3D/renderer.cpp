@@ -5,30 +5,30 @@
 #include "body.h"
 #include "ddsloader.h"
 #include "fontengine.h"
-
+	
 #define WIC_TEX
 
 Renderer::Renderer(){}
 Renderer::~Renderer(){}
 
-bool Renderer::Initialize(const HWND hWindow)
+bool Renderer::initialize(const HWND hWindow)
 {
-	mActiveShaderType = ShaderType::NONE;
+	m_activeShaderType = ShaderType::NONE;
 	uint rrNum, rrDen;
-	if (!PreInitialization(hWindow, rrNum, rrDen)) return false;
-	if (!CoreInitialization(hWindow, rrNum, rrDen)) return false;
-	if (!ShaderInitialization()) return false;
-	if (!LayoutInitialization()) return false;
+	if (!preInitialization(hWindow, rrNum, rrDen)) return false;
+	if (!coreInitialization(hWindow, rrNum, rrDen)) return false;
+	if (!shaderInitialization()) return false;
+	if (!layoutInitialization()) return false;
 
 	return true;
 }
 
-bool Renderer::LoadFontImage(const std::string& imagePath, Texture* fontImage)
+bool Renderer::loadFontImage(const std::string& imagePath, Texture* fontImage)
 {
 	Texture texture;
 	HR(DirectX::CreateWICTextureFromFile(
-		mDevice.Get(),
-		mDevcon.Get(),
+		m_pDevice.Get(),
+		m_pDevcon.Get(),
 		util::stringToWString(imagePath.c_str()).c_str(),
 		NULL,
 		&texture.modTexture(),
@@ -37,63 +37,72 @@ bool Renderer::LoadFontImage(const std::string& imagePath, Texture* fontImage)
 	return true;
 }
 
-void Renderer::PrepareFrame(
+void Renderer::prepareFrame(
 	const mat4x4& currView,
 	const mat4x4& currProj,
 	const vec4f& currCamPos,
 	const Camera::Frustum& currCamFrustum)
 {
-	mDevcon->ClearRenderTargetView(mBackBuffer.Get(), d3dconst::BG_COLOR);
-	mDevcon->ClearDepthStencilView(mDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	m_pDevcon->ClearRenderTargetView(m_pBackBuffer.Get(), d3dconst::BG_COLOR);
+	m_pDevcon->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	
-	mCurrView = currView;
-	mCurrProj = currProj;
-	mCurrCamPosition = currCamPos;
-	mCurrCamFrustum = currCamFrustum;
+	m_currView = currView;
+	m_currProj = currProj;
+	m_currCamPosition = currCamPos;
+	m_currCamFrustum = currCamFrustum;
 }
 
-void Renderer::CompleteFrame()
+void Renderer::completeFrame()
 {
 	if (AppConfig::VSYNC)
-		mSwapchain->Present(1, 0);
+		m_pSwapchain->Present(1, 0);
 	else
-		mSwapchain->Present(0, 0);
+		m_pSwapchain->Present(0, 0);
 }
 
-void Renderer::ChangeActiveLayout(const ShaderType shaderType)
+void Renderer::changeActiveLayout(const ShaderType shaderType)
 {
-	mActiveShaderType = shaderType;
-	mDevcon->VSSetShader(P_ACTIVE_VERTEX_SHADER, NULL, NULL);
-	mDevcon->PSSetShader(P_ACTIVE_PIXEL_SHADER, NULL, NULL);
-	mDevcon->IASetInputLayout(mShaderLayouts[mActiveShaderType].Get());
+	m_activeShaderType = shaderType;
+	m_pDevcon->VSSetShader(P_ACTIVE_VERTEX_SHADER, NULL, NULL);
+	m_pDevcon->PSSetShader(P_ACTIVE_PIXEL_SHADER, NULL, NULL);
+	m_pDevcon->IASetInputLayout(m_shaderLayouts[m_activeShaderType].Get());
 }
 
 void Renderer::enableHUDRendering()
 {
-	if (mHUDRendering) return;
-	mHUDRendering = true;
-	mDevcon->OMSetDepthStencilState(mDisabledDepthState.Get(), 1);
-	mDevcon->PSSetSamplers(0, 1, mHUDSampleState.GetAddressOf());
+	if (m_hudRendering) return;
+	m_hudRendering = true;
+	m_pDevcon->OMSetDepthStencilState(m_pDisabledDepthState.Get(), 1);
+	m_pDevcon->PSSetSamplers(0, 1, m_pHudSampleState.GetAddressOf());
 }
 
 void Renderer::disableHUDRendering()
 {
-	if (!mHUDRendering) return;
-	mHUDRendering = false;
-	mDevcon->OMSetDepthStencilState(mDepthStencilState.Get(), 1);
-	mDevcon->PSSetSamplers(0, 1, mDefaultSampleState.GetAddressOf());
+	if (!m_hudRendering) return;
+	m_hudRendering = false;
+	m_pDevcon->OMSetDepthStencilState(m_pDepthStencilState.Get(), 1);
+	m_pDevcon->PSSetSamplers(0, 1, m_pDefaultSampleState.GetAddressOf());
 }
 
-void Renderer::RenderHUD(HUDComponent* hudc, float4 color /* COLOR_BLACK */)
+void Renderer::renderHUD(
+	HUDComponent* hudc,
+	bool enableColor /* false */,
+	float4 color /* COLOR_BLACK */)
 {
 	enableHUDRendering();
 	float2 hudcPos = hudc->getPosition();
 	float3 finalPos = float3{hudcPos.x, hudcPos.y, 0.0f};
 	float3 finalRot = {};
-	RenderObject(ShaderType::HUD, finalPos, finalRot, true, hudc->getModBodyPointer(), color);
+	renderObject(
+		ShaderType::HUD,
+		finalPos, 
+		finalRot,
+		true,
+		hudc->getModBodyPointer(),
+		enableColor, color);
 }
 
-void Renderer::RenderText(
+void Renderer::renderText(
 	const std::string& chars,
 	const float2& startPos,
 	FontEngine* font,
@@ -109,32 +118,33 @@ void Renderer::RenderText(
 		HUDComponent* glyphComp = font->modGlyphCompPointer(*citer);
 		glyphComp->setDimensions(glyphComp->getBody().getInitDims().x, glyphComp->getBody().getInitDims().y);
 		glyphComp->setPosition(posCounter.x, posCounter.y);
-		RenderHUD(glyphComp, color);
+		renderHUD(glyphComp, true, color);
 		posCounter.x += 0.05f;
 	}
 }
 
-void Renderer::RenderModel(StaticModel* model)
+void Renderer::renderModel(StaticModel* model)
 {
 	disableHUDRendering();
-	RenderObject(ShaderType::DEFAULT, model->getPos(), model->getRot(), false, model->getModBodyPointer());
+	renderObject(ShaderType::DEFAULT, model->getPos(), model->getRot(), false, model->modBodyPointer());
 }
 
-void Renderer::RenderObject(
+void Renderer::renderObject(
 	const ShaderType shader,
 	const float3& pos,
 	const float3& rot,
 	const bool hud,
 	Body* body,
+	bool enableColor /* false */,
 	float4 color /* COLOR_BLACK */)
 {
 	if (!body->isReady() || (!hud && !isVisible(body, pos))) return;
-	if (mActiveShaderType != shader) ChangeActiveLayout(shader);
+	if (m_activeShaderType != shader) changeActiveLayout(shader);
 
 	UINT stride = sizeof(Body::Vertex);
 	UINT offset = 0;
-	mDevcon->IASetVertexBuffers(0, 1, body->modVertexBuffer().GetAddressOf(), &stride, &offset);
-	mDevcon->IASetIndexBuffer(body->immIndexBuffer().Get(), d3dconst::INDEX_FORMAT, 0U);
+	m_pDevcon->IASetVertexBuffers(0, 1, body->modVertexBuffer().GetAddressOf(), &stride, &offset);
+	m_pDevcon->IASetIndexBuffer(body->getIndexBuffer().Get(), d3dconst::INDEX_FORMAT, 0U);
 	
 	
 	mat4x4 matTrans, matRotX, matRotY, matRotZ, matScale;
@@ -158,37 +168,38 @@ void Renderer::RenderObject(
 				bodyAcDims.z / bodyInDims.z);
 
 	D3DXMATRIX matWorld = matScale * matRotX * matRotY * matRotZ * matTrans;
-	D3DXMATRIX matFinal = hud ? matWorld : matWorld * mCurrView * mCurrProj;
+	D3DXMATRIX matFinal = hud ? matWorld : matWorld * m_currView * m_currProj;
 
 	Shader::MatrixBuffer mb = {};
-	mb.camPosition = mCurrCamPosition;
+	mb.camPosition = m_currCamPosition;
 	mb.finalMatrix = matFinal;
 	mb.rotMatrix = matRotX * matRotY * matRotZ;
 	mb.worldMatrix = matWorld;
 
 	Shader::ColorBuffer cb = {};
+	cb.enableColor = enableColor;
 	cb.color = color;
 
-	mDevcon->PSSetShaderResources(0, 1, body->getActiveTexture().immTexture().GetAddressOf());
-	mDevcon->VSSetConstantBuffers(0, 1, IACTIVE_SHADER.getMatrixBuffer().GetAddressOf());
-	mDevcon->PSSetConstantBuffers(0, 1, IACTIVE_SHADER.getColorBuffer().GetAddressOf());
-	mDevcon->UpdateSubresource(IACTIVE_SHADER.getMatrixBuffer().Get(), NULL, NULL, &mb, NULL, NULL);
-	mDevcon->UpdateSubresource(IACTIVE_SHADER.getColorBuffer().Get(), NULL, NULL, &cb, NULL, NULL);
-	mDevcon->IASetPrimitiveTopology(d3dconst::PRIMITIVES);
-	mDevcon->DrawIndexed(body->getIndexCount(), 0, 0);
+	m_pDevcon->PSSetShaderResources(0, 1, body->getActiveTexture().immTexture().GetAddressOf());
+	m_pDevcon->VSSetConstantBuffers(0, 1, IACTIVE_SHADER.getMatrixBuffer().GetAddressOf());
+	m_pDevcon->PSSetConstantBuffers(0, 1, IACTIVE_SHADER.getColorBuffer().GetAddressOf());
+	m_pDevcon->UpdateSubresource(IACTIVE_SHADER.getMatrixBuffer().Get(), NULL, NULL, &mb, NULL, NULL);
+	m_pDevcon->UpdateSubresource(IACTIVE_SHADER.getColorBuffer().Get(), NULL, NULL, &cb, NULL, NULL);
+	m_pDevcon->IASetPrimitiveTopology(d3dconst::PRIMITIVES);
+	m_pDevcon->DrawIndexed(body->getIndexCount(), 0, 0);
 }
 
-bool Renderer::PrepareModel(StaticModel* model)
+bool Renderer::prepareModel(StaticModel* model)
 {
-	return PrepareObject(ShaderType::DEFAULT, model->getModBodyPointer());
+	return prepareObject(ShaderType::DEFAULT, model->modBodyPointer());
 }
 
-bool Renderer::PrepareHUD(HUDComponent* hudc)
+bool Renderer::prepareHUD(HUDComponent* hudc)
 {
-	return PrepareObject(ShaderType::HUD, hudc->getModBodyPointer());
+	return prepareObject(ShaderType::HUD, hudc->getModBodyPointer());
 }
 
-bool Renderer::PrepareObject(const ShaderType shader, Body* body)
+bool Renderer::prepareObject(const ShaderType shader, Body* body)
 {
 	comptr<ID3D11Buffer>& bodyVB = body->modVertexBuffer();
 	comptr<ID3D11Buffer>& bodyIB = body->modIndexBuffer();
@@ -205,7 +216,7 @@ bool Renderer::PrepareObject(const ShaderType shader, Body* body)
 		body->getVertices().end());
 	vsrd.pSysMem = &tempVertices[0];
 	
-	HR(mDevice->CreateBuffer(&vbd, &vsrd, &bodyVB));
+	HR(m_pDevice->CreateBuffer(&vbd, &vsrd, &bodyVB));
 
 	/* Index Buffer creation */
 	D3D11_BUFFER_DESC ibd = {};
@@ -219,7 +230,7 @@ bool Renderer::PrepareObject(const ShaderType shader, Body* body)
 		body->getIndices().end());
 	isrd.pSysMem = &tempIndices[0];
 
-	HR(mDevice->CreateBuffer(&ibd, &isrd, &bodyIB));
+	HR(m_pDevice->CreateBuffer(&ibd, &isrd, &bodyIB));
 
 	/* Load textures: remove from toload and assign to texlist */
 	Body::textoload_list& toload = body->modTexturesToLoad();
@@ -231,8 +242,8 @@ bool Renderer::PrepareObject(const ShaderType shader, Body* body)
 
 #ifdef WIC_TEX
 		HR(DirectX::CreateWICTextureFromFile(
-			mDevice.Get(),
-			mDevcon.Get(),
+			m_pDevice.Get(),
+			m_pDevcon.Get(),
 			util::stringToWString(toload.front()).c_str(),
 			NULL,
 			&texture.modTexture(),
@@ -253,7 +264,7 @@ bool Renderer::PrepareObject(const ShaderType shader, Body* body)
 	return true;
 }
 
-bool Renderer::PreInitialization(const HWND& hWindow, uint& outrrNum, uint& outrrDen)
+bool Renderer::preInitialization(const HWND& hWindow, uint& outrrNum, uint& outrrDen)
 {
 	/* DXGI factory creation */
 	comptr<IDXGIFactory> factory;
@@ -296,17 +307,17 @@ bool Renderer::PreInitialization(const HWND& hWindow, uint& outrrNum, uint& outr
 	HR(adapter->GetDesc(&adapterDesc));
 
 	/* Store video card memory */
-	mVideoCardMemory = (uint) (adapterDesc.DedicatedVideoMemory / 1024 / 1024);
+	m_videoCardMemory = (uint) (adapterDesc.DedicatedVideoMemory / 1024 / 1024);
 
 	/* Store video card name */
-	mVideoCardName = util::wstringToString(adapterDesc.Description);
-	LOGLN(mVideoCardName);
-	LOGLN(mVideoCardMemory);
+	m_videoCardName = util::wstringToString(adapterDesc.Description);
+	LOGLN(m_videoCardName);
+	LOGLN(m_videoCardMemory);
 
 	return true;
 }
 
-bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const uint rrDen)
+bool Renderer::coreInitialization(const HWND& hWindow, const uint rrNum, const uint rrDen)
 {
 	/* Swap chain description */
 	DXGI_SWAP_CHAIN_DESC scd = {};
@@ -338,15 +349,15 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 		1,
 		D3D11_SDK_VERSION,
 		&scd,
-		&mSwapchain,
-		&mDevice,
+		&m_pSwapchain,
+		&m_pDevice,
 		NULL,
-		&mDevcon));
+		&m_pDevcon));
 	
 	/* Create render target view*/
 	comptr<ID3D11Texture2D> backBufferPtr;
-	HR(mSwapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*) &backBufferPtr));
-	HR(mDevice->CreateRenderTargetView(backBufferPtr.Get(), NULL, &mBackBuffer));
+	HR(m_pSwapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*) &backBufferPtr));
+	HR(m_pDevice->CreateRenderTargetView(backBufferPtr.Get(), NULL, &m_pBackBuffer));
 
 	/* Create depth buffer */
 	D3D11_TEXTURE2D_DESC dbd = {};
@@ -359,7 +370,7 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	else dbd.SampleDesc = {1, 0};
 	dbd.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	
-	HR(mDevice->CreateTexture2D(&dbd, NULL, &mDepthBuffer));
+	HR(m_pDevice->CreateTexture2D(&dbd, NULL, &m_pDepthBuffer));
 	
 	/* Create and set the custom depth Stencil State */
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
@@ -377,9 +388,9 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
 	depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 	depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-	HR(mDevice->CreateDepthStencilState(&depthStencilDesc, &mDepthStencilState));
+	HR(m_pDevice->CreateDepthStencilState(&depthStencilDesc, &m_pDepthStencilState));
 	depthStencilDesc.DepthEnable = false;
-	HR(mDevice->CreateDepthStencilState(&depthStencilDesc, &mDisabledDepthState));
+	HR(m_pDevice->CreateDepthStencilState(&depthStencilDesc, &m_pDisabledDepthState));
 	
 	/* Create the depth stencil view */
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsvd = {};
@@ -387,10 +398,10 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	if (AppConfig::MULTISAMPLING) dsvd.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 	else dsvd.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	dsvd.Texture2D.MipSlice = 0;
-	HR(mDevice->CreateDepthStencilView(mDepthBuffer.Get(), &dsvd, &mDepthStencilView));
+	HR(m_pDevice->CreateDepthStencilView(m_pDepthBuffer.Get(), &dsvd, &m_pDepthStencilView));
 	
 	/* Set the newly created render target view along with the depth stencil view */
-	mDevcon->OMSetRenderTargets(1, mBackBuffer.GetAddressOf(), mDepthStencilView.Get());
+	m_pDevcon->OMSetRenderTargets(1, m_pBackBuffer.GetAddressOf(), m_pDepthStencilView.Get());
 
 	/* Create and set the blend state */
 	D3D11_BLEND_DESC bd = {};
@@ -404,8 +415,8 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	bd.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	bd.IndependentBlendEnable = FALSE;
 	bd.AlphaToCoverageEnable = TRUE;
-	HR(mDevice->CreateBlendState(&bd, &mBlendState));
-	mDevcon->OMSetBlendState(mBlendState.Get(), 0, 0xFFFFFFFF);
+	HR(m_pDevice->CreateBlendState(&bd, &m_pBlendState));
+	m_pDevcon->OMSetBlendState(m_pBlendState.Get(), 0, 0xFFFFFFFF);
 
 	D3D11_SAMPLER_DESC sd;
 	sd.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -421,10 +432,10 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	sd.MaxLOD = FLT_MAX;
 	sd.MipLODBias = 0.0f;
 
-	mDevice->CreateSamplerState(&sd, &mDefaultSampleState);
+	m_pDevice->CreateSamplerState(&sd, &m_pDefaultSampleState);
 	sd.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-	mDevice->CreateSamplerState(&sd, &mHUDSampleState);
-	mDevcon->PSSetSamplers(0, 1, mDefaultSampleState.GetAddressOf());
+	m_pDevice->CreateSamplerState(&sd, &m_pHudSampleState);
+	m_pDevcon->PSSetSamplers(0, 1, m_pDefaultSampleState.GetAddressOf());
 
 	/* Create the custom rasterizer state */
 	D3D11_RASTERIZER_DESC rastDesc = {};
@@ -439,8 +450,8 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	rastDesc.DepthBiasClamp = 0.0f;
 	rastDesc.SlopeScaledDepthBias = 0.0f;
 
-	mDevice->CreateRasterizerState(&rastDesc, &mRastState);
-	mDevcon->RSSetState(mRastState.Get());
+	m_pDevice->CreateRasterizerState(&rastDesc, &m_pRastState);
+	m_pDevcon->RSSetState(m_pRastState.Get());
 
 	/* Create and set the viewport */
 	D3D11_VIEWPORT viewport = {};
@@ -450,27 +461,27 @@ bool Renderer::CoreInitialization(const HWND& hWindow, const uint rrNum, const u
 	viewport.Height = static_cast<FLOAT>(AppConfig::HEIGHT);
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
-	mDevcon->RSSetViewports(1, &viewport);
+	m_pDevcon->RSSetViewports(1, &viewport);
 
 	return true;
 }
 
-bool Renderer::ShaderInitialization()
+bool Renderer::shaderInitialization()
 {
-	mShaderFiles[ShaderType::HUD] = "hud.hlsl";
-	mShaderFiles[ShaderType::DEFAULT] = "default.hlsl";
+	m_shaderFiles[ShaderType::HUD] = "hud.hlsl";
+	m_shaderFiles[ShaderType::DEFAULT] = "default.hlsl";
 
 	Shader defShader, hudShader;
-	if (!defShader.Initialize(mDevice, mShaderFiles[ShaderType::DEFAULT]) |
-		!hudShader.Initialize(mDevice, mShaderFiles[ShaderType::HUD])) return false;
+	if (!defShader.initialize(m_pDevice, m_shaderFiles[ShaderType::DEFAULT]) |
+		!hudShader.initialize(m_pDevice, m_shaderFiles[ShaderType::HUD])) return false;
 	
-	mShaders[ShaderType::HUD] = hudShader;
-	mShaders[ShaderType::DEFAULT] = defShader;
+	m_shaders[ShaderType::HUD] = hudShader;
+	m_shaders[ShaderType::DEFAULT] = defShader;
 
 	return true;
 }
 
-bool Renderer::LayoutInitialization()
+bool Renderer::layoutInitialization()
 {
 
 	/* Global default layout creation */
@@ -493,23 +504,22 @@ bool Renderer::LayoutInitialization()
 	nied.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 
 	D3D11_INPUT_ELEMENT_DESC finalLayout[] = {vied, tied, nied};
-	HR(mDevice->CreateInputLayout(
+	HR(m_pDevice->CreateInputLayout(
 		finalLayout,
 		ARRAYSIZE(finalLayout),
-		mShaders[ShaderType::DEFAULT].getByteCode(),
-		mShaders[ShaderType::DEFAULT].getByteCodeLength(),
-		&mGlobalDefaultLayout));
+		m_shaders[ShaderType::DEFAULT].getByteCode(),
+		m_shaders[ShaderType::DEFAULT].getByteCodeLength(),
+		&m_pGlobalDefaultLayout));
 	
-	//TODO actually differentiate the two layouts
-	HR(mDevice->CreateInputLayout(
+	HR(m_pDevice->CreateInputLayout(
 		finalLayout,
 		ARRAYSIZE(finalLayout),
-		mShaders[ShaderType::HUD].getByteCode(),
-		mShaders[ShaderType::HUD].getByteCodeLength(),
-		&mGlobalHUDLayout));
+		m_shaders[ShaderType::HUD].getByteCode(),
+		m_shaders[ShaderType::HUD].getByteCodeLength(),
+		&m_pGlobalHUDLayout));
 
-	mShaderLayouts[ShaderType::DEFAULT] = mGlobalDefaultLayout;
-	mShaderLayouts[ShaderType::HUD] = mGlobalHUDLayout;
+	m_shaderLayouts[ShaderType::DEFAULT] = m_pGlobalDefaultLayout;
+	m_shaderLayouts[ShaderType::HUD] = m_pGlobalHUDLayout;
 
 	return true;
 }
@@ -525,7 +535,7 @@ bool Renderer::isVisible(const Body* b, const float3& pos)
 		 ++i)
 	{
 		if (D3DXPlaneDotCoord(
-			&mCurrCamFrustum.planes[i],
+			&m_currCamFrustum.planes[i],
 			&vec3f{pos.x, pos.y, pos.z}) < -collSphereRad) return false;
 	}
 

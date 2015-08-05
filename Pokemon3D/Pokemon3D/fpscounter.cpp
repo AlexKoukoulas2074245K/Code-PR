@@ -2,20 +2,24 @@
 #include "common.h"
 #pragma comment(lib, "winmm.lib")
 
-FpsCounter::FpsCounter(): mFps(0), mCount(0), mStartTime(timeGetTime()){}
+FpsCounter::FpsCounter(): 
+m_fps(0),
+m_count(0),
+m_startTime(timeGetTime()){}
 FpsCounter::~FpsCounter(){}
 
-void FpsCounter::Update()
+void FpsCounter::update()
 {	
-	mCount++;
+	m_count++;
 	unsigned long currTime = timeGetTime();
-	if (currTime >= (mStartTime + 1000))
+	if (currTime >= (m_startTime + 1000))
 	{
-		mFps = mCount;
-		mStartTime = currTime;
-		mCount = 0;
+		m_fps = m_count;
+		m_startTime = currTime;
+		m_count = 0;
 	}
 }
 
+unsigned int FpsCounter::getFPS() const { return m_fps; }
 
 

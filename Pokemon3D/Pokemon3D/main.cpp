@@ -82,7 +82,7 @@ int CALLBACK WinMain(
 
 	/* Game State queue initialization */
 	GSQueue qstates;
-	if (!qstates.Initialize(hWindow)) return Shutdown(EXIT_FAILURE);
+	if (!qstates.initialize(hWindow)) return Shutdown(EXIT_FAILURE);
 
 	/* Game Loop */
 	MSG message;
@@ -94,13 +94,13 @@ int CALLBACK WinMain(
 			DispatchMessage(&message);
 
 			if (message.message == WM_QUIT) break;
-			qstates.HandleInput(message);
+			qstates.handleInput(message);
 		}
 		else
 		{
-			qstates.Update();
+			qstates.update();
 			if (qstates.isEmpty()) break;
-			qstates.Render();
+			qstates.render();
 		}
 	}
 

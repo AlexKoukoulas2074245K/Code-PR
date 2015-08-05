@@ -8,25 +8,25 @@
 class Camera
 {
 public:
-
 	static const float ZNEAR;
 	static const float ZFAR;
 	static const float FOV;
 	static const unsigned int CAM_FRUST_NSIDES;
 
-	typedef enum Direction
+public:
+	enum Direction
 	{
 		FORWARD, BACKWARD,
 		RIGHT, LEFT,
 		UP, DOWN
-	} cam_dir;
+	};
 
-	typedef enum Orientation
+	enum Orientation
 	{
 		NORTH, SOUTH, EAST, WEST
-	} cam_ori;
+	};
 
-	typedef struct Frustum
+	struct Frustum
 	{
 		D3DXPLANE planes[6];
 	};
@@ -35,32 +35,39 @@ public:
 	Camera();
 	~Camera();
 	
-	void MoveTo(const float targetPos);
-	void Turn(const cam_dir& dir);
-	void Update();
+	void moveTo(const float targetPos);
+	void turn(const Direction& dir);
+	void update();
 
+	const mat4x4& computeViewMatrix();
 	void getCameraFrustum(const mat4x4& matView,
 						  mat4x4 matProj,
 						  Frustum& outFrustum) const;
+	const mat4x4& getProjMatrix() const;
+	vec4f getPosition() const;
+	vec3f getPosition3() const;
+	Orientation getOrientation() const;
+	bool isMoving() const;
+	bool isTurning() const;
 
-	const mat4x4& getViewMatrix();
-	const mat4x4& getProjMatrix() const { return mProjMatrix; }
-	vec4f getPosition() const { return vec4f{mPosition.x, mPosition.y, mPosition.z, 1.0f}; }
-	vec3f getPosition3() const { return mPosition; }
-	cam_ori getOrientation() const { return mOriMap.at(mCurrAngleIndex); }
-	bool getMoving() const { return mMoving; }
-	bool getTurning() const { return mTurning; }
-
-	void setPosition(const vec3f& pos) { mPosition = pos; }
-	void setPosition(const float x, const float y, const float z) { mPosition = vec3f{x, y, z}; }
+	void setPosition(const vec3f& pos);
+	void setPosition(const float x, const float y, const float z);
 
 private:
-	std::map<size_t, Orientation> mOriMap;
-	mat4x4 mViewMatrix, mProjMatrix;
-	vec3f mPosition, mUp, mLook, mRight;
-	float mYaw, mPitch, mRoll, mTargetYaw, mTargetPos;
-	bool mTurning, mMoving;
-	size_t mCurrAngleIndex;
-	std::array<float, 6> mValidAngles;
+	static const float ANGLE;
+	static const float TURN_SPEED;
+	static const float MOVE_SPEED;
+	static const size_t VALID_ANGLE_LO;
+	static const size_t VALID_ANGLE_HI;
+	static const size_t N_ANGLES;
+
+private:
+	std::map<size_t, Orientation> m_oriMap;
+	mat4x4 m_viewMatrix, m_projMatrix;
+	vec3f m_position, m_up, m_look, m_right;
+	float m_yaw, m_pitch, m_roll, m_targetYaw, m_targetPos;
+	bool m_isTurning, m_isMoving;
+	size_t m_currAngleIndex;
+	std::array<float, 6> m_validAngles;
 
 };

@@ -21,30 +21,31 @@ public:
 	Level();
 	~Level();
 
-	bool Initialize(
+	bool initialize(
 		const sptr<Renderer> renderer,
 		const sptr<IOManager> iomanager);
-	void Update();
-	void Render();
+	void update();
+	void render();
 
-	bool ValidCoords(const uint x, const uint y) const;
-	uint2 GetCoords(const vec3f& inPos) const;
-	vec3f GetPosition(const uint2& inCoords, const float y) const;
-	uint GetTileType(const uint x, const uint y) const;
-	uint GetTileType(const uint2& inCoords) const;
-	uint GetTileType(const vec3f& inPos) const;
-	const level_dims& GetLevelDims() const { return mLevelDims; }
+	bool validCoords(const uint x, const uint y) const;
+	uint2 getCoords(const vec3f& inPos) const;
+	vec3f getPosition(const uint2& inCoords, const float y) const;
+	uint getTileType(const uint x, const uint y) const;
+	uint getTileType(const uint2& inCoords) const;
+	uint getTileType(const vec3f& inPos) const;
+	const level_dims& getLevelDims() const;
 
 private:
 	static const float LAKE_CURRENT_VEL;
 	static const float LAKE_CURRENT_MAX_DISTANCE;
 	static const unsigned int LAKE_MAX_FRAMES_PER_CURRENT;
 
-	sptr<Renderer> mRenderer;
-	static_object_list mObjects;
-	lake_object_list mLakePieces;
-	level_map mLevelMap;
-	level_dims mLevelDims;
-	bool mLakeCurrentLeft;
-	unsigned int mLakeFrameCounter;
+private:
+	sptr<Renderer> m_pRenderer;
+	static_object_list m_objects;
+	lake_object_list m_lakePieces;
+	level_map m_levelMap;
+	level_dims m_levelDims;
+	bool m_lakeCurrentLeft;
+	unsigned int m_lakeFrameCounter;
 };

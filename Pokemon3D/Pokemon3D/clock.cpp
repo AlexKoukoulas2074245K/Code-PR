@@ -4,7 +4,7 @@
 Clock::Clock(){}
 Clock::~Clock(){}
 
-bool Clock::InitClock()
+bool Clock::initClock()
 {
 	LARGE_INTEGER li;
 	if (!QueryPerformanceFrequency(&li))
@@ -13,16 +13,16 @@ bool Clock::InitClock()
 		return false;
 	}
 
-	freq = double(li.QuadPart) / 1000.0;
+	m_freq = double(li.QuadPart) / 1000.0;
 	QueryPerformanceCounter(&li);
-	start = li.QuadPart;
+	m_start = li.QuadPart;
 
 	return true;
 }
 
-double Clock::GetCounter()
+double Clock::getCounter() const
 {
 	LARGE_INTEGER li;
 	QueryPerformanceCounter(&li);
-	return double(li.QuadPart - start) / freq;
+	return double(li.QuadPart - m_start) / m_freq;
 }

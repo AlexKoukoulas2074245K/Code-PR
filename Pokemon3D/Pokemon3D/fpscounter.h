@@ -5,10 +5,12 @@ class FpsCounter
 public:
 	FpsCounter();
 	~FpsCounter();
-	void Update();
-	unsigned int getFPS() const { return mFps; }
+	
+	void update();
+	
+	unsigned int getFPS() const;
 
 private:
-	unsigned int mFps, mCount;
-	unsigned long mStartTime;
+	unsigned int m_fps, m_count;
+	unsigned long m_startTime;
 };

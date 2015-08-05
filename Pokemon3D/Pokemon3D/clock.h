@@ -6,10 +6,10 @@ public:
 	Clock();
 	~Clock();
 
-	bool  InitClock();
-	double GetCounter();
+	bool initClock();
+	double getCounter() const;
 
 private:
-	double freq = 0.0;
-	_int64 start = 0;
+	double m_freq = 0.0;
+	_int64 m_start = 0;
 };

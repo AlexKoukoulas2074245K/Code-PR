@@ -8,16 +8,19 @@
 
 const float FontEngine::FONT_IMAGE_SIZE = 256.0f;
 
-void FontEngine::PrepareFontEngine(sptr<IOManager> iom, sptr<Renderer> rend)
+FontEngine::FontEngine(const std::string& fontName): m_name(fontName){}
+FontEngine::~FontEngine(){};
+
+void FontEngine::prepareFontEngine(sptr<IOManager> iom, sptr<Renderer> rend)
 {
 	IOManager::str configPath;
-	iom->GetPathOf(mName, IOManager::Format::FCF, configPath);
+	iom->getPathOf(m_name, IOManager::Format::FCF, configPath);
 	std::list<std::string> fontConfigContents;
-	iom->GetFileContent(configPath, &fontConfigContents);
+	iom->getFileContent(configPath, &fontConfigContents);
 
 	IOManager::str imagePath;
-	iom->GetPathOf(mName, IOManager::HUD, imagePath);
-	rend->LoadFontImage(imagePath, &mFontTexture);
+	iom->getPathOf(m_name, IOManager::HUD, imagePath);
+	rend->loadFontImage(imagePath, &m_fontTexture);
 	uint cellX = 0U;
 	uint cellY = 0U;
 	for (std::list<std::string>::const_iterator citer = fontConfigContents.begin();
@@ -30,7 +33,7 @@ void FontEngine::PrepareFontEngine(sptr<IOManager> iom, sptr<Renderer> rend)
 			 cit != splitLine.end();
 			 ++cit)
 		{
-			mGlyphMap[(*cit)[0]] = float2{static_cast<float>(cellX), static_cast<float>(cellY)};
+			m_glyphMap[(*cit)[0]] = float2{static_cast<float>(cellX), static_cast<float>(cellY)};
 
 			HUDComponent glyphComp;
 			float2 newCoords[4];
@@ -42,10 +45,10 @@ void FontEngine::PrepareFontEngine(sptr<IOManager> iom, sptr<Renderer> rend)
 								  cellY / FONT_IMAGE_SIZE + FONT_CELL_SIZE / FONT_IMAGE_SIZE};
 			newCoords[3] = float2{cellX / FONT_IMAGE_SIZE,
 								  cellY / FONT_IMAGE_SIZE + FONT_CELL_SIZE / FONT_IMAGE_SIZE};
-			glyphComp.ChangeTexCoords(newCoords);
-			glyphComp.setImage(mName, iom);
-			rend->PrepareHUD(&glyphComp);
-			mGlyphComps[(*cit)[0]] = glyphComp;
+			glyphComp.changeTexCoords(newCoords);
+			glyphComp.setImage(m_name, iom);
+			rend->prepareHUD(&glyphComp);
+			m_glyphComps[(*cit)[0]] = glyphComp;
 
 			cellX += FONT_CELL_SIZE;
 		}
@@ -54,3 +57,11 @@ void FontEngine::PrepareFontEngine(sptr<IOManager> iom, sptr<Renderer> rend)
 		cellY += FONT_CELL_SIZE;
 	}
 }
+
+const float2& FontEngine::getGlyphPosition(const char glyph) { return m_glyphMap[glyph]; }
+const std::string& FontEngine::getName() const { return m_name; }
+
+HUDComponent* FontEngine::modGlyphCompPointer(const char& glyph) { return &m_glyphComps[glyph]; }
+Texture* FontEngine::modTexture() { return &m_fontTexture; }
+
+void FontEngine::setTexture(const Texture& texture) { m_fontTexture = texture; }

@@ -4,27 +4,27 @@
 #define VK_X 0x58
 
 HIDManager::HIDManager():
-mCurrState(0), mPrevState(0)
+m_currState(0), m_prevState(0)
 {
-	mKeyDict[VK_LEFT] = KEY_LEFT;
-	mKeyDict[VK_RIGHT] = KEY_RIGHT;
-	mKeyDict[VK_UP] = KEY_UP;
-	mKeyDict[VK_DOWN] = KEY_DOWN;
-	mKeyDict[VK_Z] = KEY_A;
-	mKeyDict[VK_X] = KEY_B;
-	mKeyDict[VK_RETURN] = KEY_START;
-	mKeyDict[VK_BACK] = KEY_SELECT;
+	m_keyDict[VK_LEFT] = KEY_LEFT;
+	m_keyDict[VK_RIGHT] = KEY_RIGHT;
+	m_keyDict[VK_UP] = KEY_UP;
+	m_keyDict[VK_DOWN] = KEY_DOWN;
+	m_keyDict[VK_Z] = KEY_A;
+	m_keyDict[VK_X] = KEY_B;
+	m_keyDict[VK_RETURN] = KEY_START;
+	m_keyDict[VK_BACK] = KEY_SELECT;
 }
 HIDManager::~HIDManager(){}
 
-void HIDManager::UpdateState(const MSG& msg)
+void HIDManager::updateState(const MSG& msg)
 {
-	if (!mKeyDict.count(msg.wParam)) return;
-	if (msg.message == WM_KEYDOWN) mCurrState |= mKeyDict[msg.wParam];
-	else if (msg.message == WM_KEYUP) mCurrState &= ~mKeyDict[msg.wParam];
+	if (!m_keyDict.count(msg.wParam)) return;
+	if (msg.message == WM_KEYDOWN) m_currState |= m_keyDict[msg.wParam];
+	else if (msg.message == WM_KEYUP) m_currState &= ~m_keyDict[msg.wParam];
 }
 
-void HIDManager::CompleteFrame(){ mPrevState = mCurrState; }
-bool HIDManager::KeyDown(const key_t key){ return (mCurrState & key) != 0; }
-bool HIDManager::KeyUp(const key_t key){ return (!(mCurrState & key)) == 0; }
-bool HIDManager::KeyTapped(const key_t key){ return (mCurrState & key) != 0 && (mPrevState & key) == 0; }
+void HIDManager::completeFrame(){ m_prevState = m_currState; }
+bool HIDManager::keyDown(const key_t key){ return (m_currState & key) != 0; }
+bool HIDManager::keyUp(const key_t key){ return (!(m_currState & key)) == 0; }
+bool HIDManager::keyTapped(const key_t key){ return (m_currState & key) != 0 && (m_prevState & key) == 0; }
