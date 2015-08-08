@@ -6,15 +6,16 @@
 #include "pokedef.h"
 #include "hudcomponent.h"
 
-class Renderer;
-class IOManager;
+
 class FontEngine
 {
 public:
-	FontEngine(const std::string& fontName);
-	~FontEngine();
+	static const float FONT_SIZE;
 
-	void prepareFontEngine(sptr<IOManager> iom, sptr<Renderer> rend);
+public:
+	static FontEngine& get();
+public:
+	void prepareFontEngine(const std::string& name);
 
 	const float2& getGlyphPosition(const char glyph);
 	const std::string& getName() const;
@@ -25,7 +26,12 @@ public:
 	void setTexture(const Texture& texture);
 
 private:
-	static const uint FONT_CELL_SIZE = 16;
+	FontEngine();
+	FontEngine(const FontEngine&) = delete;
+	void operator=(const FontEngine&) = delete;
+
+private:
+	static const uint FONT_CELL_SIZE;
 	static const float FONT_IMAGE_SIZE;
 
 private:

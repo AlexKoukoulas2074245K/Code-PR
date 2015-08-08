@@ -37,6 +37,12 @@
 #define LEVEL_ORI_BOTLEFT "bottomleft"
 #define LEVEL_ORI_BOTRIGHT "bottomright"
 
+IOManager& IOManager::get()
+{
+	static IOManager iom;
+	return iom;
+}
+
 IOManager::IOManager()
 {
 	m_suppFormats[Format::OBJ] = ".obj"; 
@@ -48,12 +54,6 @@ IOManager::IOManager()
 	m_formatPaths[Format::PNG] = "C:/Users/alex/Pictures/projects/pkmnrevo/textures/materials/";
 	m_formatPaths[Format::HUD] = "C:/Users/alex/Pictures/projects/pkmnrevo/textures/hud/";
 	m_formatPaths[Format::FCF] = "C:/Users/alex/Pictures/projects/pkmnrevo/config/";
-}
-IOManager::~IOManager(){}
-
-void IOManager::setRenderer(const sptr<Renderer>& renderer)
-{
-	m_pRenderer = renderer;
 }
 
 bool IOManager::getFileContent(const str& path, str_list* outList)
@@ -103,7 +103,7 @@ void IOManager::loadBody(const str& id, const str& mat)
 	resultBody.setSingleTexture(mat);
 	if (LoadOBJFromFile(path, &resultBody))
 	{
-		m_pRenderer->prepareObject(Renderer::ShaderType::DEFAULT, &resultBody);
+		Renderer::get().prepareObject(Renderer::ShaderType::DEFAULT, &resultBody);
 		m_prelBodies[path] = resultBody;
 	}
 }

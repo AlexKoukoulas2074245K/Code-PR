@@ -10,11 +10,6 @@
 #include "colors.h"
 
 GSQueue::GSQueue():
-m_pRenderer(new Renderer),
-m_pIOManager(new IOManager),
-m_pHIDManager(new HIDManager),
-m_pFontEngine(new FontEngine("stdfont")),
-m_pFpsc(new FpsCounter),
 m_isEmpty(false)
 {
 	LOGLN("GSQueue constructor called"); 
@@ -28,9 +23,8 @@ GSQueue::~GSQueue()
 bool GSQueue::initialize(const HWND& hWindow)
 {
 	/* Initialize the renderer */
-	if (!m_pRenderer->initialize(hWindow)) return false;
-	m_pIOManager->setRenderer(m_pRenderer);
-	m_pFontEngine->prepareFontEngine(m_pIOManager, m_pRenderer);
+	if (!Renderer::get().initialize(hWindow)) return false;
+	FontEngine::get().prepareFontEngine("stdfont");
 
 	/* Add and initialize game states */
 	m_states.push_back(value_t(new GSPlay));
@@ -38,10 +32,6 @@ bool GSQueue::initialize(const HWND& hWindow)
 		 iter != m_states.end();
 		 ++iter)
 	{
-		iter->get()->setRenderer(m_pRenderer);
-		iter->get()->setIOManager(m_pIOManager);
-		iter->get()->setHIDManager(m_pHIDManager);
-		iter->get()->setFontEngine(m_pFontEngine);
 		if (!iter->get()->initialize()) return false;
 	}
 
@@ -50,26 +40,24 @@ bool GSQueue::initialize(const HWND& hWindow)
 
 void GSQueue::handleInput(const MSG& msg)
 {
-	m_pHIDManager->updateState(msg);
+	HIDManager::get().updateState(msg);
 }
 
 void GSQueue::update()
 {
 	m_states.front()->update();
-	if (m_states.front()->isFinished()) 
+	if (m_states.front()->isFinished())
 	{
 		m_states.pop_front();
 		m_isEmpty = m_states.empty();
 	}
-	m_pHIDManager->completeFrame();
-	m_pFpsc->update();
 }
 
 void GSQueue::render()
 {
 	m_states.front()->render();
-	m_pRenderer->renderText("Fps: " + std::to_string(m_pFpsc->getFPS()), {-0.95f, 0.9f}, m_pFontEngine.get(), COLOR_BLACK);
-	m_pRenderer->completeFrame();
+	Renderer::get().completeFrame();
+	HIDManager::get().completeFrame();
 }
 
 bool GSQueue::isEmpty() const { return m_isEmpty; }

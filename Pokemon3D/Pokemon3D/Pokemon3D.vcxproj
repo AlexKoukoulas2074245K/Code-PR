@@ -81,6 +81,7 @@
     <ClCompile Include="ioutils.cpp" />
     <ClCompile Include="level.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="menuboxbody.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="shader.cpp" />
@@ -110,6 +111,7 @@
     <ClInclude Include="renderer.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="staticmodel.h" />
+    <ClInclude Include="menuboxbody.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="config.h" />
   </ItemGroup>

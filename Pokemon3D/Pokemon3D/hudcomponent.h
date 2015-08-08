@@ -4,7 +4,6 @@
 #include "pokedef.h"
 #include "body.h"
 
-class IOManager;
 class HUDComponent
 {
 public:
@@ -20,7 +19,7 @@ public:
 
 	void setPosition(const float x, const float y);
 	void setDimensions(const float width, const float height);
-	void setImage(const std::string& imageName, const sptr<IOManager> iom);
+	void setImage(const std::string& imageName);
 
 private:
 	Body m_body;

@@ -35,9 +35,9 @@ void HUDComponent::setDimensions(const float width, const float height)
 	m_body.setDimensions(float3{width, height, 1.0f});
 }
 
-void HUDComponent::setImage(const std::string& imageName, const sptr<IOManager> iom)
+void HUDComponent::setImage(const std::string& imageName)
 {
 	std::string s;
-	iom->getPathOf(imageName, IOManager::Format::HUD, s);
+	IOManager::get().getPathOf(imageName, IOManager::Format::HUD, s);
 	m_body.setSingleTexture(s);
 }

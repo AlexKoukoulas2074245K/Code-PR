@@ -8,8 +8,13 @@
 	
 #define WIC_TEX
 
+Renderer& Renderer::get()
+{
+	static Renderer rend;
+	return rend;
+}
+
 Renderer::Renderer(){}
-Renderer::~Renderer(){}
 
 bool Renderer::initialize(const HWND hWindow)
 {
@@ -105,7 +110,6 @@ void Renderer::renderHUD(
 void Renderer::renderText(
 	const std::string& chars,
 	const float2& startPos,
-	FontEngine* font,
 	float4 color /* COLOR_BLACK */)
 {
 	float2 posCounter = {};
@@ -115,11 +119,28 @@ void Renderer::renderText(
 		 citer != chars.end();
 		 ++citer)
 	{
-		HUDComponent* glyphComp = font->modGlyphCompPointer(*citer);
-		glyphComp->setDimensions(glyphComp->getBody().getInitDims().x, glyphComp->getBody().getInitDims().y);
-		glyphComp->setPosition(posCounter.x, posCounter.y);
-		renderHUD(glyphComp, true, color);
-		posCounter.x += 0.05f;
+		switch (*citer)
+		{
+			case ' ':
+			{
+				posCounter.x += FontEngine::FONT_SIZE / AppConfig::ASPECT;
+			}break;
+
+			case '\n':
+			{
+				posCounter.x = startPos.x;
+				posCounter.y -= FontEngine::FONT_SIZE;
+			}break;
+
+			default:
+			{
+				HUDComponent* glyphComp = FontEngine::get().modGlyphCompPointer(*citer);
+				glyphComp->setDimensions(glyphComp->getBody().getInitDims().x, glyphComp->getBody().getInitDims().y);
+				glyphComp->setPosition(posCounter.x, posCounter.y);
+				renderHUD(glyphComp, true, color);
+				posCounter.x += FontEngine::FONT_SIZE / AppConfig::ASPECT;
+			}break;
+		}
 	}
 }
 

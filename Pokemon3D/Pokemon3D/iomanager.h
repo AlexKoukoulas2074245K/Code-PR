@@ -6,11 +6,9 @@
 #include "pokedef.h"
 #include "staticmodel.h"
 
-class Renderer;
 class IOManager
 {
 public:
-	
 	enum Format
 	{
 		OBJ, PNG, HUD, FCF
@@ -21,12 +19,9 @@ public:
 	typedef str_list::const_iterator str_list_iter;
 	typedef str::size_type str_sizet;
 
-	IOManager();
-	~IOManager();
-
-	/* Renderer setting */
-	void setRenderer(const sptr<Renderer>& renderer);
-
+public:
+	static IOManager& get();
+public:
 	/* Retrieves the content of the specified file and returns it split by newline */
 	bool getFileContent(const str& path, str_list* outList);
 
@@ -47,6 +42,9 @@ public:
 	void getAllFilenames(const str& directory, str_list &outFilenames);
 
 private:
+	IOManager();
+	IOManager(const IOManager&) = delete;
+	void operator=(const IOManager&) = delete;
 	bool IOManager::validPath(const str& path, const Format frmt);
 
 private:
@@ -58,7 +56,6 @@ private:
 	static const char NAME_POS_SEP = ':';
 
 private:
-	sptr<Renderer> m_pRenderer;
 	std::map<str, Body> m_prelBodies;
 	std::map<Format, str> m_suppFormats;
 	std::map<Format, str> m_formatPaths;

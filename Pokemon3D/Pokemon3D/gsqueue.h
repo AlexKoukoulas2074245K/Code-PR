@@ -4,11 +4,6 @@
 #include "pokedef.h"
 
 class GameState;
-class Renderer;
-class HIDManager;
-class IOManager;
-class FpsCounter;
-class FontEngine;
 class GSQueue
 {
 public:
@@ -32,9 +27,4 @@ public:
 private:
 	bool m_isEmpty;
 	gs_list m_states;
-	sptr<Renderer> m_pRenderer;
-	sptr<IOManager> m_pIOManager;
-	sptr<HIDManager> m_pHIDManager;
-	sptr<FontEngine> m_pFontEngine;
-	uptr<FpsCounter> m_pFpsc;
 };

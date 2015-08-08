@@ -23,7 +23,6 @@ class Body;
 class HUDComponent;
 class StaticModel;
 class Texture;
-class FontEngine;
 class Renderer
 {
 public:
@@ -32,9 +31,10 @@ public:
 		DEFAULT, HUD, NONE
 	};
 
-	Renderer();
-	~Renderer();
+public:
+	static Renderer& get();
 
+public:
 	bool initialize(const HWND hWindow);
 	bool loadFontImage(const std::string& imagePath, Texture* fontImage);
 	bool prepareModel(StaticModel* model);
@@ -48,7 +48,6 @@ public:
 	void renderText(
 		const std::string& chars,
 		const float2& startPos,
-		FontEngine* font,
 		float4 color = COLOR_BLACK);
 	void prepareFrame(
 		const mat4x4& currView,
@@ -56,7 +55,12 @@ public:
 		const vec4f& currCamPos,
 		const Camera::Frustum& currCamFrustum);
 	void completeFrame();
-	
+
+private:
+	Renderer();
+	Renderer(const Renderer&) = delete;
+	void operator=(const Renderer&) = delete;
+
 private:
 	bool preInitialization(const HWND& hWindow, uint& outrrNum, uint& outrrDen);
 	bool coreInitialization(const HWND& hWindow, const uint rrNum, const uint rrDen);

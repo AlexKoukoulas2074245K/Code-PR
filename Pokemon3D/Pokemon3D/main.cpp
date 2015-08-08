@@ -2,8 +2,8 @@
 
 #include "vld.h"
 #include "gsqueue.h"
-#include "renderer.h"
 #include "config.h"
+#include "common.h"
 
 std::ofstream LOGFILE;
 

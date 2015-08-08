@@ -6,21 +6,29 @@
 #include "renderer.h"
 #include "iomanager.h"
 
-const float FontEngine::FONT_IMAGE_SIZE = 256.0f;
+const uint FontEngine::FONT_CELL_SIZE = 8U;
+const float FontEngine::FONT_IMAGE_SIZE = 128.0f;
+const float FontEngine::FONT_SIZE = Body::BITMAP_INIT_WIDTH;
 
-FontEngine::FontEngine(const std::string& fontName): m_name(fontName){}
-FontEngine::~FontEngine(){};
-
-void FontEngine::prepareFontEngine(sptr<IOManager> iom, sptr<Renderer> rend)
+FontEngine& FontEngine::get()
 {
+	static FontEngine fe;
+	return fe;
+}
+
+FontEngine::FontEngine(){}
+
+void FontEngine::prepareFontEngine(const std::string& name)
+{
+	m_name = name;
 	IOManager::str configPath;
-	iom->getPathOf(m_name, IOManager::Format::FCF, configPath);
+	IOManager::get().getPathOf(m_name, IOManager::Format::FCF, configPath);
 	std::list<std::string> fontConfigContents;
-	iom->getFileContent(configPath, &fontConfigContents);
+	IOManager::get().getFileContent(configPath, &fontConfigContents);
 
 	IOManager::str imagePath;
-	iom->getPathOf(m_name, IOManager::HUD, imagePath);
-	rend->loadFontImage(imagePath, &m_fontTexture);
+	IOManager::get().getPathOf(m_name, IOManager::HUD, imagePath);
+	Renderer::get().loadFontImage(imagePath, &m_fontTexture);
 	uint cellX = 0U;
 	uint cellY = 0U;
 	for (std::list<std::string>::const_iterator citer = fontConfigContents.begin();
@@ -46,8 +54,8 @@ void FontEngine::prepareFontEngine(sptr<IOManager> iom, sptr<Renderer> rend)
 			newCoords[3] = float2{cellX / FONT_IMAGE_SIZE,
 								  cellY / FONT_IMAGE_SIZE + FONT_CELL_SIZE / FONT_IMAGE_SIZE};
 			glyphComp.changeTexCoords(newCoords);
-			glyphComp.setImage(m_name, iom);
-			rend->prepareHUD(&glyphComp);
+			glyphComp.setImage(m_name);
+			Renderer::get().prepareHUD(&glyphComp);
 			m_glyphComps[(*cit)[0]] = glyphComp;
 
 			cellX += FONT_CELL_SIZE;

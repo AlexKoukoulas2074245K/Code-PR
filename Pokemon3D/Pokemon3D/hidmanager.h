@@ -15,18 +15,22 @@
 class HIDManager
 {
 public:
+	static HIDManager& get();
+public:
 	typedef unsigned int key_t;
 	typedef std::map<key_t, key_t> key_dict;
 
-	HIDManager();
-	~HIDManager();
-	
 	void updateState(const MSG& msg);
 	void completeFrame();
 
 	bool keyDown(const key_t key);
 	bool keyUp(const key_t key);
 	bool keyTapped(const key_t key);
+
+private:
+	HIDManager();
+	HIDManager(const HIDManager&) = delete;
+	void operator=(const HIDManager&) = delete;
 
 private:
 	key_dict m_keyDict;

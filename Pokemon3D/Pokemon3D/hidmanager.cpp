@@ -3,6 +3,12 @@
 #define VK_Z 0x5A
 #define VK_X 0x58
 
+HIDManager& HIDManager::get()
+{
+	static HIDManager hid;
+	return hid;
+}
+
 HIDManager::HIDManager():
 m_currState(0), m_prevState(0)
 {
@@ -15,7 +21,6 @@ m_currState(0), m_prevState(0)
 	m_keyDict[VK_RETURN] = KEY_START;
 	m_keyDict[VK_BACK] = KEY_SELECT;
 }
-HIDManager::~HIDManager(){}
 
 void HIDManager::updateState(const MSG& msg)
 {

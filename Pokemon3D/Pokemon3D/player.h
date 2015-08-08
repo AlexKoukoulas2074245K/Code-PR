@@ -4,7 +4,6 @@
 
 class Level;
 class Camera;
-class HIDManager;
 class Player
 {
 public:
@@ -12,8 +11,10 @@ public:
 	~Player();
 
 	void computePosition();
-	void update(const sptr<HIDManager> HIDManager);
+	void update();
+	
 	uptr<Camera>& modCameraPointer();
+	bool canCollide() const;
 
 private:
 
@@ -21,4 +22,5 @@ private:
 	const sptr<Level>& m_pLevel;
 	uint2 m_levelCoords;
 	vec3f m_levelPos;
+	bool m_canCollide;
 };

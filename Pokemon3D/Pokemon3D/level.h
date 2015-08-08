@@ -2,9 +2,7 @@
 #include <list>
 
 #include "staticmodel.h"
-#include "iomanager.h"
 
-class Renderer;
 class Level
 {
 public:
@@ -21,9 +19,7 @@ public:
 	Level();
 	~Level();
 
-	bool initialize(
-		const sptr<Renderer> renderer,
-		const sptr<IOManager> iomanager);
+	bool initialize();
 	void update();
 	void render();
 
@@ -41,7 +37,6 @@ private:
 	static const unsigned int LAKE_MAX_FRAMES_PER_CURRENT;
 
 private:
-	sptr<Renderer> m_pRenderer;
 	static_object_list m_objects;
 	lake_object_list m_lakePieces;
 	level_map m_levelMap;

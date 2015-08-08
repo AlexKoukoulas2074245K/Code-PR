@@ -4,6 +4,7 @@
 
 #include "clock.h"
 #include "renderer.h"
+#include "iomanager.h"
 
 const float Level::TILE_SIZE = 1.6f;
 const float Level::LAKE_CURRENT_VEL = 0.001f;
@@ -19,20 +20,16 @@ Level::~Level()
 }
 
 
-bool Level::initialize(
-	const sptr<Renderer> renderer,
-	const sptr<IOManager> iomanager)
+bool Level::initialize()
 {
 	m_lakeFrameCounter = 0;
 	m_lakeCurrentLeft = true;
-
-	m_pRenderer = renderer;
 	m_objects.clear();
 	m_lakePieces.clear();
 
 	Clock c;
 	if (!c.initClock()) return false;
-	iomanager->getAllBodiesFromLevel(
+	IOManager::get().getAllBodiesFromLevel(
 		"C:/Users/alex/Pictures/projects/pkmnrevo/levels/pallet.lvl",
 		TILE_SIZE,
 		m_levelDims,
@@ -64,14 +61,14 @@ void Level::render()
 		iter != m_objects.end();
 		++iter)
 	{
-		m_pRenderer->renderModel(&*iter);
+		Renderer::get().renderModel(&*iter);
 	}
 	
 	for (lo_list_iter iter = m_lakePieces.begin();
 		iter != m_lakePieces.end();
 		++iter)
 	{
-		m_pRenderer->renderModel(&*iter);
+		Renderer::get().renderModel(&*iter);
 	}
 }
 
