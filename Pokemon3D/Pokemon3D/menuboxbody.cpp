@@ -64,7 +64,7 @@ void MenuBoxBody::fill(
 	baseDimensions.x = maxWidth;
 	baseDimensions.y = baseHeightCounter;
 
-	m_base.setImage("Ball");
+	m_base.setImage("menuboxbg");
 	m_base.setDimensions(baseDimensions.x * AppConfig::ASPECT, baseDimensions.y);
 	m_base.setPosition(m_offset.x + baseDimensions.x * 0.5f, m_offset.y - baseDimensions.y * 0.5f);
 	Renderer::get().prepareHUD(&m_base);
@@ -151,7 +151,7 @@ void MenuBoxBody::fill(
 	m_borderPieces.push_back(botleftComp);
 }
 
-void MenuBoxBody::render()
+void MenuBoxBody::render(const bool renderContent /* true */)
 {
 	Renderer::get().renderHUD(&m_base);
 
@@ -162,7 +162,7 @@ void MenuBoxBody::render()
 		Renderer::get().renderHUD(&(*iter));
 	}
 
-	Renderer::get().renderText(m_content, m_textOffset);
+	if(renderContent) Renderer::get().renderText(m_content, m_textOffset);
 }
 
 void MenuBoxBody::addHorSpacing()

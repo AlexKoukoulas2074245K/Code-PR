@@ -3,7 +3,7 @@
 
 
 const float Camera::ZNEAR = 0.1f;
-const float Camera::ZFAR = 40.0f;
+const float Camera::ZFAR = 30.0f;
 const float Camera::FOV = (FLOAT) XMConvertToRadians(45);
 const unsigned int Camera::CAM_FRUST_NSIDES = 6U;
 
@@ -18,7 +18,7 @@ Camera::Camera(): Camera(vec3f()){}
 Camera::Camera(const vec3f& position) :
 m_position(position),
 m_up(vec3f(0.0f, 1.0f, 0.0f)),
-m_look(vec3f(0.0f, 0.0f, 1.0f)),
+m_forward(vec3f(0.0f, 0.0f, 1.0f)),
 m_right(vec3f(1.0f, 0.0f, 0.0f)),
 m_isTurning(false),
 m_isMoving(false),
@@ -78,17 +78,23 @@ void Camera::turn(const Direction& dir)
 	}
 }
 
-void Camera::update()
+void Camera::update(float& outDy)
 {
-	if (m_isTurning && util::lerp(m_yaw, m_targetYaw, TURN_SPEED, m_yaw))
+	outDy = 0.0f;
+	if (m_isTurning)
 	{
-		m_isTurning = false;
-		m_yaw = m_validAngles[m_currAngleIndex];
-		m_targetYaw = m_yaw;
+		float prevYaw = m_yaw;
+		if (util::lerp(m_yaw, m_targetYaw, TURN_SPEED, m_yaw))
+		{
+			m_isTurning = false;
+			m_yaw = m_validAngles[m_currAngleIndex];
+			m_targetYaw = m_yaw;
+		}
+		outDy = m_yaw - prevYaw;
 	}
 	else if (m_isMoving)
 	{
-		m_position += m_look * MOVE_SPEED;
+		m_position += m_forward * MOVE_SPEED;
 		if (m_oriMap[m_currAngleIndex] == NORTH && m_position.z <= m_targetPos)
 		{
 			m_isMoving = false;
@@ -115,12 +121,12 @@ void Camera::update()
 const mat4x4& Camera::computeViewMatrix()
 {
 	m_up = vec3f(0.0f, 1.0f, 0.0f);
-	m_look = vec3f(0.0f, 0.0f, 1.0f);
+	m_forward = vec3f(0.0f, 0.0f, 1.0f);
 	m_right = vec3f(1.0f, 0.0f, 0.0f);
 
 	mat4x4 yawMatrix;
 	D3DXMatrixRotationAxis(&yawMatrix, &m_up, m_yaw);
-	D3DXVec3TransformCoord(&m_look, &m_look, &yawMatrix);
+	D3DXVec3TransformCoord(&m_forward, &m_forward, &yawMatrix);
 	D3DXVec3TransformCoord(&m_right, &m_right, &yawMatrix);
 
 	mat4x4 pitchMatrix;
@@ -129,7 +135,7 @@ const mat4x4& Camera::computeViewMatrix()
 	D3DXVec3TransformCoord(&m_up, &m_up, &pitchMatrix);
 
 	mat4x4 rollMatrix;
-	D3DXMatrixRotationAxis(&rollMatrix, &m_look, m_roll);
+	D3DXMatrixRotationAxis(&rollMatrix, &m_forward, m_roll);
 	D3DXVec3TransformCoord(&m_right, &m_right, &rollMatrix);
 	D3DXVec3TransformCoord(&m_up, &m_up, &rollMatrix);
 
@@ -143,13 +149,13 @@ const mat4x4& Camera::computeViewMatrix()
 	m_viewMatrix._22 = m_up.y;
 	m_viewMatrix._32 = m_up.z;  
 
-	m_viewMatrix._13 = m_look.x;
-	m_viewMatrix._23 = m_look.y;
-	m_viewMatrix._33 = m_look.z;
+	m_viewMatrix._13 = m_forward.x;
+	m_viewMatrix._23 = m_forward.y;
+	m_viewMatrix._33 = m_forward.z;
 
 	m_viewMatrix._41 = -D3DXVec3Dot(&m_position, &m_right);
 	m_viewMatrix._42 = -D3DXVec3Dot(&m_position, &m_up);
-	m_viewMatrix._43 = -D3DXVec3Dot(&m_position, &m_look);
+	m_viewMatrix._43 = -D3DXVec3Dot(&m_position, &m_forward);
 
 	return m_viewMatrix;
 }
@@ -210,9 +216,12 @@ void Camera::getCameraFrustum(
 }
 
 const mat4x4& Camera::getProjMatrix() const { return m_projMatrix; }
-vec4f Camera::getPosition() const { return vec4f{m_position.x, m_position.y, m_position.z, 1.0f}; }
-vec3f Camera::getPosition3() const { return m_position; }
-Camera::Orientation Camera::getOrientation() const { return m_oriMap.at(m_currAngleIndex); }
+const vec3f& Camera::getPosition() const { return m_position; }
+const vec3f& Camera::getForward() const { return m_forward; }
+const vec3f& Camera::getRight() const { return m_right; }
+const vec3f& Camera::getUp() const { return m_up; }
+
+Orientation Camera::getOrientation() const { return m_oriMap.at(m_currAngleIndex); }
 bool Camera::isMoving() const { return m_isMoving; }
 bool Camera::isTurning() const { return m_isTurning; }
 

@@ -41,21 +41,22 @@ public:
 	bool prepareHUD(HUDComponent* hudc);
 	bool prepareObject(const ShaderType shader, Body* body);
 	void renderModel(StaticModel* model);
+	void renderBillboard(StaticModel* model);
 	void renderHUD(
 		HUDComponent* component,
 		bool enableColor = false,
-		float4 color = COLOR_BLACK);
+		float4 color = pokecolors::COLOR_BLACK);
 	void renderText(
 		const std::string& chars,
 		const float2& startPos,
-		float4 color = COLOR_BLACK);
+		float4 color = pokecolors::COLOR_BLACK);
 	void prepareFrame(
 		const mat4x4& currView,
 		const mat4x4& currProj,
 		const vec4f& currCamPos,
 		const Camera::Frustum& currCamFrustum);
 	void completeFrame();
-
+	
 private:
 	Renderer();
 	Renderer(const Renderer&) = delete;
@@ -77,7 +78,8 @@ private:
 		const bool hud,
 		Body* body,
 		bool enableColor = false,
-		float4 color = COLOR_BLACK);
+		float4 color = pokecolors::COLOR_BLACK,
+		bool billboard = false);
 
 private:
 	comptr<ID3D11Device> m_pDevice;
@@ -99,7 +101,7 @@ private:
 	
 	uint m_videoCardMemory;
 	std::string m_videoCardName;
-	
+
 	ShaderType m_activeShaderType;
 	std::map<ShaderType, Shader> m_shaders;
 	std::map<ShaderType, std::string> m_shaderFiles;
@@ -109,4 +111,6 @@ private:
 	mat4x4 m_currProj;
 	vec4f m_currCamPosition;
 	Camera::Frustum m_currCamFrustum;
+	uint m_nObjectsCulled;
+	
 };

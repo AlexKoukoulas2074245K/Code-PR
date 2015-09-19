@@ -5,11 +5,25 @@
 class StaticModel
 {
 public:
+	StaticModel(){}
 	StaticModel(const Body& body, const float3& pos, const float3& rot):
 	m_body(body),
 	m_pos(pos),
 	m_rot(rot){};
-	~StaticModel(){};
+	~StaticModel(){}
+
+	void setBody(const Body& body) { m_body = body; }
+
+	void changeTexCoords(const float2 coords[6])
+	{
+		for (size_t i = 0; i < 6; ++i)
+		{
+			Body::vertex_t v = m_body.getVertex(i);
+			v.u = coords[i].x;
+			v.v = coords[i].y;
+			m_body.setVertex(i, v);
+		}
+	}
 
 	void setPos(const float3& pos) { m_pos = pos; }
 	void setX(const float x) { m_pos.x = x; }

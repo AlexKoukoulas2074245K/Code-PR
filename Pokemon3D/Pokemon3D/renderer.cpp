@@ -55,6 +55,7 @@ void Renderer::prepareFrame(
 	m_currProj = currProj;
 	m_currCamPosition = currCamPos;
 	m_currCamFrustum = currCamFrustum;
+	m_nObjectsCulled = 0U;
 }
 
 void Renderer::completeFrame()
@@ -150,6 +151,21 @@ void Renderer::renderModel(StaticModel* model)
 	renderObject(ShaderType::DEFAULT, model->getPos(), model->getRot(), false, model->modBodyPointer());
 }
 
+void Renderer::renderBillboard(StaticModel* model)
+{
+	disableHUDRendering();
+	m_pDevcon->PSSetSamplers(0, 1, m_pHudSampleState.GetAddressOf());
+	renderObject(
+		ShaderType::DEFAULT,
+		model->getPos(),
+		model->getRot(),
+		false,
+		model->modBodyPointer(),
+		false,
+		pokecolors::COLOR_BLACK,
+		true);
+}
+
 void Renderer::renderObject(
 	const ShaderType shader,
 	const float3& pos,
@@ -157,16 +173,16 @@ void Renderer::renderObject(
 	const bool hud,
 	Body* body,
 	bool enableColor /* false */,
-	float4 color /* COLOR_BLACK */)
+	float4 color /* COLOR_BLACK */,
+	bool billboard /* false */)
 {
-	if (!body->isReady() || (!hud && !isVisible(body, pos))) return;
+	if (!body->isReady() || (!hud && !billboard && !isVisible(body, pos))) return;
 	if (m_activeShaderType != shader) changeActiveLayout(shader);
 
 	UINT stride = sizeof(Body::Vertex);
 	UINT offset = 0;
 	m_pDevcon->IASetVertexBuffers(0, 1, body->modVertexBuffer().GetAddressOf(), &stride, &offset);
 	m_pDevcon->IASetIndexBuffer(body->getIndexBuffer().Get(), d3dconst::INDEX_FORMAT, 0U);
-	
 	
 	mat4x4 matTrans, matRotX, matRotY, matRotZ, matScale;
 	D3DXMatrixTranslation(&matTrans, pos.x, pos.y, pos.z);
@@ -177,7 +193,7 @@ void Renderer::renderObject(
 	float3 bodyInDims = body->getInitDims();
 	float3 bodyAcDims = body->getDimensions();
 
-	if (hud) D3DXMatrixScaling(
+	if (hud || billboard) D3DXMatrixScaling(
 				&matScale,
 				(bodyAcDims.x / bodyInDims.x) / AppConfig::ASPECT,
 				bodyAcDims.y / bodyInDims.y,
@@ -200,7 +216,7 @@ void Renderer::renderObject(
 	Shader::ColorBuffer cb = {};
 	cb.enableColor = enableColor;
 	cb.color = color;
-
+	
 	m_pDevcon->PSSetShaderResources(0, 1, body->getActiveTexture().immTexture().GetAddressOf());
 	m_pDevcon->VSSetConstantBuffers(0, 1, IACTIVE_SHADER.getMatrixBuffer().GetAddressOf());
 	m_pDevcon->PSSetConstantBuffers(0, 1, IACTIVE_SHADER.getColorBuffer().GetAddressOf());
@@ -557,7 +573,11 @@ bool Renderer::isVisible(const Body* b, const float3& pos)
 	{
 		if (D3DXPlaneDotCoord(
 			&m_currCamFrustum.planes[i],
-			&vec3f{pos.x, pos.y, pos.z}) < -collSphereRad) return false;
+			&vec3f{pos.x, pos.y, pos.z}) < -collSphereRad)
+		{
+			++m_nObjectsCulled;
+			return false;
+		}
 	}
 
 	return true;

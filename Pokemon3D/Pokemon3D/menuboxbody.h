@@ -17,7 +17,7 @@ public:
 		const float2& offset,
 		const bool hasHorArrow = false);
 	
-	void render();
+	void render(const bool renderContent = true);
 
 private:
 	static const float2 BORDER_TL_COORDS[4];

@@ -21,11 +21,6 @@ public:
 		UP, DOWN
 	};
 
-	enum Orientation
-	{
-		NORTH, SOUTH, EAST, WEST
-	};
-
 	struct Frustum
 	{
 		D3DXPLANE planes[6];
@@ -37,15 +32,18 @@ public:
 	
 	void moveTo(const float targetPos);
 	void turn(const Direction& dir);
-	void update();
+	void update(float& outDy);
 
 	const mat4x4& computeViewMatrix();
 	void getCameraFrustum(const mat4x4& matView,
 						  mat4x4 matProj,
 						  Frustum& outFrustum) const;
 	const mat4x4& getProjMatrix() const;
-	vec4f getPosition() const;
-	vec3f getPosition3() const;
+	const vec3f& getPosition() const;
+	const vec3f& getForward() const;
+	const vec3f& getRight() const;
+	const vec3f& getUp() const;
+	
 	Orientation getOrientation() const;
 	bool isMoving() const;
 	bool isTurning() const;
@@ -64,7 +62,7 @@ private:
 private:
 	std::map<size_t, Orientation> m_oriMap;
 	mat4x4 m_viewMatrix, m_projMatrix;
-	vec3f m_position, m_up, m_look, m_right;
+	vec3f m_position, m_up, m_forward, m_right;
 	float m_yaw, m_pitch, m_roll, m_targetYaw, m_targetPos;
 	bool m_isTurning, m_isMoving;
 	size_t m_currAngleIndex;

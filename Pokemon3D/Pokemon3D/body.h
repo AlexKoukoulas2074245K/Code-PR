@@ -27,11 +27,17 @@ public:
 	typedef comptr<ID3D11Buffer> body_buffer;
 	typedef comptr<ID3D11InputLayout> body_layout;
 	
-	static const vertex_list BITMAP_VERTICES;
-	static const index_list BITMAP_INDICES;
-	static const float BITMAP_INIT_WIDTH;
-	static const float BITMAP_INIT_HEIGHT;
+	static const vertex_list HUD_BODY_VERTICES;
+	static const index_list HUD_BODY_INDICES;
+	static const float HUD_BODY_WIDTH;
+	static const float HUD_BODY_HEIGHT;
 
+	static const vertex_list BILLBOARD_BODY_VERTICES;
+	static const index_list BILLBOARD_BODY_INDICES;
+	static const float BILLBOARD_BODY_WIDTH;
+	static const float BILLBOARD_BODY_HEIGHT;
+
+public:
 	Body();
 	~Body();
 
@@ -60,6 +66,7 @@ public:
 	void setTexturesToLoadList(const textoload_list& source);
 	void setSingleTexture(const std::string& texFilename);
 	
+	mat4x4 orientation;
 
 private:
 	textoload_list m_texturesToLoad;

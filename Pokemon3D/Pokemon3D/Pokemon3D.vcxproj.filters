@@ -72,6 +72,18 @@
     <ClCompile Include="menuboxbody.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="billboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="npc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="chatbox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="owobject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h">
@@ -150,6 +162,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="menuboxbody.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="billboard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="npc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chatbox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="owobject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

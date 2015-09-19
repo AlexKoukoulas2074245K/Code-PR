@@ -3,8 +3,6 @@
 #include "pokedef.h"
 #include "common.h"
 
-#define SHADER_PATH std::string("C:/Users/alex/Pictures/projects/pkmnrevo/shaders/")
-
 class Shader
 {
 public:

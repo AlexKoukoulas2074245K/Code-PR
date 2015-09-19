@@ -1,16 +1,29 @@
 #include "body.h"
 
-const Body::vertex_list Body::BITMAP_VERTICES = 
+const float Body::HUD_BODY_WIDTH = 0.1f;
+const float Body::HUD_BODY_HEIGHT = 0.1f;
+const Body::index_list Body::HUD_BODY_INDICES = {0, 1, 2, 2, 3, 0};
+const Body::vertex_list Body::HUD_BODY_VERTICES = 
 {
-	Vertex{-0.05f, 0.05f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	Vertex{0.05f, 0.05f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	Vertex{0.05f, -0.05f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f},
-	Vertex{-0.05f, -0.05f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f},
+	Vertex{-Body::HUD_BODY_WIDTH / 2.0f,  Body::HUD_BODY_HEIGHT / 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	Vertex{ Body::HUD_BODY_WIDTH / 2.0f,  Body::HUD_BODY_HEIGHT / 2.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	Vertex{ Body::HUD_BODY_WIDTH / 2.0f, -Body::HUD_BODY_HEIGHT / 2.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f},
+	Vertex{-Body::HUD_BODY_WIDTH / 2.0f, -Body::HUD_BODY_HEIGHT / 2.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f},
 };
-const Body::index_list Body::BITMAP_INDICES = {0, 1, 2, 2, 3, 0};
-const float Body::BITMAP_INIT_WIDTH = 0.1f;
-const float Body::BITMAP_INIT_HEIGHT = 0.1f;
 
+const float Body::BILLBOARD_BODY_WIDTH = 1.6f * ((float) GetSystemMetrics(SM_CXSCREEN) /
+												 (float) GetSystemMetrics(SM_CYSCREEN));
+const float Body::BILLBOARD_BODY_HEIGHT = 1.6f;
+const Body::index_list Body::BILLBOARD_BODY_INDICES = {0, 1, 2, 3, 4, 5};
+const Body::vertex_list Body::BILLBOARD_BODY_VERTICES = 
+{
+	Vertex{ Body::BILLBOARD_BODY_WIDTH / 2.0f, -Body::BILLBOARD_BODY_HEIGHT / 2.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f},
+	Vertex{ Body::BILLBOARD_BODY_WIDTH / 2.0f,  Body::BILLBOARD_BODY_HEIGHT / 2.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	Vertex{-Body::BILLBOARD_BODY_WIDTH / 2.0f,  Body::BILLBOARD_BODY_HEIGHT / 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	Vertex{-Body::BILLBOARD_BODY_WIDTH / 2.0f, -Body::BILLBOARD_BODY_HEIGHT / 2.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f},
+	Vertex{ Body::BILLBOARD_BODY_WIDTH / 2.0f, -Body::BILLBOARD_BODY_HEIGHT / 2.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f},
+	Vertex{-Body::BILLBOARD_BODY_WIDTH / 2.0f,  Body::BILLBOARD_BODY_HEIGHT / 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f}
+};
 Body::Body():m_activeTexture(0){}
 Body::~Body(){}
 

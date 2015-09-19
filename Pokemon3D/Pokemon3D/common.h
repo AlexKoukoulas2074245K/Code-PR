@@ -33,10 +33,15 @@ namespace util
 {
 	template<class A>
 	struct pair{ A a, b; };
+	
 	inline std::string wstringToString(const std::wstring in) { return std::string(in.begin(), in.end()); }
 	inline std::wstring stringToWString(const std::string in) { return std::wstring(in.begin(), in.end()); }
+	
 	inline float maxf(float a, float b){ return a > b ? a : b; }
-	/* Standard LERP */
+	
+	template<class A>
+	void swap(A& a, A& b){ A c = a; a = b; b = c; }
+
 	inline bool lerp(const float current,
 				  const float target,
 				  const float dt,

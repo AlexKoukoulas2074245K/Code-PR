@@ -2,6 +2,8 @@
 
 #include <d3dcompiler.h>
 
+#include "iomanager.h"
+
 #pragma comment (lib, "d3dcompiler.lib")
 
 Shader::Shader(){}
@@ -12,8 +14,8 @@ bool Shader::initialize(
 	const std::string& coreFname)
 {
 	comptr<ID3D10Blob> errorMessage;
-	std::string vFilename = SHADER_PATH + "v_" + coreFname;
-	std::string pFilename = SHADER_PATH + "p_" + coreFname;
+	std::string vFilename = IOManager::get().getFormatPath(IOManager::VER) + "v_" + coreFname;
+	std::string pFilename = IOManager::get().getFormatPath(IOManager::PIX) + "p_" + coreFname;
 
 	/* Vertex shader compilation */
 	HRESULT result;

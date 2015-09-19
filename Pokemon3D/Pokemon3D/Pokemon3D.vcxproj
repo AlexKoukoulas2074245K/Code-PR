@@ -67,8 +67,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="billboard.cpp" />
     <ClCompile Include="body.cpp" />
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="chatbox.cpp" />
     <ClCompile Include="clock.cpp" />
     <ClCompile Include="ddsloader.cpp" />
     <ClCompile Include="fontengine.cpp" />
@@ -82,14 +84,18 @@
     <ClCompile Include="level.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="menuboxbody.cpp" />
+    <ClCompile Include="npc.cpp" />
+    <ClCompile Include="owobject.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="config.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="billboard.h" />
     <ClInclude Include="body.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="chatbox.h" />
     <ClInclude Include="clock.h" />
     <ClInclude Include="colors.h" />
     <ClInclude Include="common.h" />
@@ -106,6 +112,8 @@
     <ClInclude Include="iomanager.h" />
     <ClInclude Include="ioutils.h" />
     <ClInclude Include="level.h" />
+    <ClInclude Include="npc.h" />
+    <ClInclude Include="owobject.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="pokedef.h" />
     <ClInclude Include="renderer.h" />

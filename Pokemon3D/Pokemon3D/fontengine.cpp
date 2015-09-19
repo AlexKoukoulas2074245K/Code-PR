@@ -8,7 +8,20 @@
 
 const uint FontEngine::FONT_CELL_SIZE = 8U;
 const float FontEngine::FONT_IMAGE_SIZE = 128.0f;
-const float FontEngine::FONT_SIZE = Body::BITMAP_INIT_WIDTH;
+const float FontEngine::FONT_SIZE = Body::HUD_BODY_WIDTH;
+
+/*
+---- Special Characters -----
+e with tone = ^
+PKMN = '
+empty right arrow = {
+full right arrow = }
+down arrow = |
+male sign = #
+pokedollar sign = $
+x = *
+female sign = @ 
+*/
 
 FontEngine& FontEngine::get()
 {

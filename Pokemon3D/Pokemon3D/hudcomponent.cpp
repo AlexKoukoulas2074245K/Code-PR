@@ -3,11 +3,11 @@
 #include "iomanager.h"
 
 HUDComponent::HUDComponent():
-m_dimensions(float2{Body::BITMAP_INIT_WIDTH, Body::BITMAP_INIT_HEIGHT})
+m_dimensions(float2{Body::HUD_BODY_WIDTH, Body::HUD_BODY_HEIGHT})
 {
-	m_body.setVertices(Body::BITMAP_VERTICES);
-	m_body.setIndices(Body::BITMAP_INDICES);
-	m_body.setInitDims(float3{Body::BITMAP_INIT_WIDTH, Body::BITMAP_INIT_HEIGHT, 1.0f});
+	m_body.setVertices(Body::HUD_BODY_VERTICES);
+	m_body.setIndices(Body::HUD_BODY_INDICES);
+	m_body.setInitDims(float3{Body::HUD_BODY_WIDTH, Body::HUD_BODY_HEIGHT, 1.0f});
 	m_body.setDimensions(m_body.getInitDims());
 }
 HUDComponent::~HUDComponent(){}
